@@ -8,4 +8,5 @@ public interface IAnalyzeService
     Task<OperationResult> AnalyzeAsync(AnalyzeRequest request, CancellationToken cancellationToken);
     Task<AnalyzeRun?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<AnalyzeProvider>> GetProvidersAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyCollection<AiModel>> GetModelsAsync(CancellationToken cancellationToken);
 }

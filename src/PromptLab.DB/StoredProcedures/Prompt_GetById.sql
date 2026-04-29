@@ -12,8 +12,10 @@ BEGIN
         p.[Category],
         p.[Language],
         p.[ModelHint],
+        p.[DefaultModelId],
         p.[Temperature],
         p.[MaxTokens],
+        p.[TopP],
         p.[IsActive],
         p.[CreatedAt],
         p.[UpdatedAt]

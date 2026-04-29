@@ -48,8 +48,10 @@ Parametros sugeridos:
 - `category`: categoria funcional.
 - `language`: idioma del prompt.
 - `modelHint`: sugerencia de modelo.
+- `defaultModelId`: modelo por defecto para ejecucion (`gpt-5.5`, `claude-sonnet`, etc).
 - `temperature`: temperatura sugerida para ejecucion.
 - `maxTokens`: maximo de tokens sugerido.
+- `topP`: valor sugerido de muestreo nucleus.
 - `isActive`: estado logico.
 - `createdAt`: fecha de creacion.
 - `updatedAt`: fecha de ultima modificacion.
@@ -84,9 +86,16 @@ El modulo `Analyze` permitira:
 
 - Seleccionar un prompt existente.
 - Enviar variables o input de usuario.
-- Elegir un proveedor de IA.
+- Elegir proveedor y/o modelo especifico.
 - Ejecutar el analisis mediante una interfaz comun.
 - Persistir el resultado y metadata de ejecucion.
+
+La ejecucion resolvera parametros efectivos en este orden:
+
+1. Overrides de la corrida (`AnalyzeRequest`).
+2. Defaults del prompt.
+3. Defaults del modelo.
+4. Defaults globales/proveedor.
 
 La primera implementacion del proveedor sera simulada. El diseno debera permitir agregar implementaciones reales para OpenAI, Claude, Gemini u otros proveedores.
 
@@ -218,16 +227,17 @@ La eliminacion inicial sera baja logica mediante `isActive = false`.
 - `GET /api/v1/tags`
 - `POST /api/v1/tags`
 
-### 6.3 Proveedores IA
+### 6.3 Catalogo IA
 
 - `GET /api/v1/ai-providers`
+- `GET /api/v1/ai-models`
 
 ### 6.4 Analyze
 
 - `POST /api/v1/analyze`
 - `GET /api/v1/analyze/{id}`
 
-## 7. Proveedores IA
+## 7. Proveedores Y Modelos IA
 
 Se definira una interfaz comun:
 
@@ -244,6 +254,13 @@ La primera version incluira una implementacion simulada:
 - `SimulatedAiProvider`
 
 El selector de proveedor resolvera la implementacion por nombre configurado, permitiendo sumar implementaciones reales luego sin cambiar los casos de uso.
+
+Adicionalmente, se modelara un catalogo explicito de modelos (`AiModel`) para separar:
+
+- `Provider`: vendor/canal de ejecucion.
+- `ModelId`: modelo concreto del proveedor.
+
+Los modelos podran declararse como deshabilitados para mostrar roadmap sin anunciar disponibilidad de ejecucion real.
 
 ## 8. Frontend
 

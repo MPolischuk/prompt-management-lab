@@ -36,8 +36,10 @@ BEGIN
         @Category = N'Sales',
         @Language = N'es',
         @ModelHint = N'gpt-4o-mini',
+        @DefaultModelId = N'gpt-5.5',
         @Temperature = 0.70,
-        @MaxTokens = 350;
+        @MaxTokens = 350,
+        @TopP = 1.00;
 END
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Prompts] WHERE [Title] = N'Resumen tecnico de incidente')
@@ -49,8 +51,10 @@ BEGIN
         @Category = N'Operations',
         @Language = N'es',
         @ModelHint = N'claude-3-5-sonnet',
+        @DefaultModelId = N'claude-sonnet',
         @Temperature = 0.40,
-        @MaxTokens = 500;
+        @MaxTokens = 500,
+        @TopP = 0.95;
 END
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Prompts] WHERE [Title] = N'Asistente para documentacion de API')
@@ -62,8 +66,10 @@ BEGIN
         @Category = N'Engineering',
         @Language = N'en',
         @ModelHint = N'gemini-1.5-pro',
+        @DefaultModelId = N'gemini-2.5-pro',
         @Temperature = 0.30,
-        @MaxTokens = 600;
+        @MaxTokens = 600,
+        @TopP = 0.90;
 END
 
 DECLARE @PromptSales UNIQUEIDENTIFIER =
@@ -199,8 +205,14 @@ BEGIN
     EXEC [dbo].[Analyze_CreateRun]
         @PromptId = @PromptSales,
         @Provider = N'simulated',
+        @ModelId = N'simulated-default',
         @Input = N'nombre_cliente=Acme Corp; producto=PromptLab Enterprise',
         @Output = N'[SIMULATED] Email generado para seguimiento comercial con CTA.',
+        @Temperature = 0.70,
+        @MaxTokens = 350,
+        @TopP = 1.00,
+        @PromptSnapshot = N'Escribe un email de seguimiento para {{nombre_cliente}} sobre {{producto}} destacando beneficios y proximo paso.',
+        @PromptSnapshotHash = N'SEED-HASH',
         @Status = N'Completed',
         @ErrorMessage = NULL,
         @LatencyMs = 142;

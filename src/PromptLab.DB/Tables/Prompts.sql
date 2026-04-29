@@ -7,14 +7,17 @@ CREATE TABLE [dbo].[Prompts]
     [Category] NVARCHAR(100) NULL,
     [Language] NVARCHAR(20) NULL,
     [ModelHint] NVARCHAR(100) NULL,
+    [DefaultModelId] NVARCHAR(100) NULL,
     [Temperature] DECIMAL(4, 2) NULL,
     [MaxTokens] INT NULL,
+    [TopP] DECIMAL(4, 2) NULL,
     [IsActive] BIT NOT NULL CONSTRAINT [DF_Prompts_IsActive] DEFAULT (1),
     [CreatedAt] DATETIME2(3) NOT NULL CONSTRAINT [DF_Prompts_CreatedAt] DEFAULT SYSUTCDATETIME(),
     [UpdatedAt] DATETIME2(3) NOT NULL CONSTRAINT [DF_Prompts_UpdatedAt] DEFAULT SYSUTCDATETIME(),
     CONSTRAINT [PK_Prompts] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [CK_Prompts_Temperature_Range] CHECK ([Temperature] IS NULL OR ([Temperature] >= 0 AND [Temperature] <= 2)),
-    CONSTRAINT [CK_Prompts_MaxTokens_Positive] CHECK ([MaxTokens] IS NULL OR [MaxTokens] > 0)
+    CONSTRAINT [CK_Prompts_MaxTokens_Positive] CHECK ([MaxTokens] IS NULL OR [MaxTokens] > 0),
+    CONSTRAINT [CK_Prompts_TopP_Range] CHECK ([TopP] IS NULL OR ([TopP] > 0 AND [TopP] <= 1))
 );
 
 GO

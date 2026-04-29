@@ -9,8 +9,10 @@ public class Prompt
     public string? Category { get; init; }
     public string? Language { get; init; }
     public string? ModelHint { get; init; }
+    public string? DefaultModelId { get; init; }
     public decimal? Temperature { get; init; }
     public int? MaxTokens { get; init; }
+    public decimal? TopP { get; init; }
     public bool IsActive { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }

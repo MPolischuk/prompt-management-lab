@@ -6,8 +6,10 @@ CREATE PROCEDURE [dbo].[Prompt_Update]
     @Category NVARCHAR(100) = NULL,
     @Language NVARCHAR(20) = NULL,
     @ModelHint NVARCHAR(100) = NULL,
+    @DefaultModelId NVARCHAR(100) = NULL,
     @Temperature DECIMAL(4, 2) = NULL,
     @MaxTokens INT = NULL,
+    @TopP DECIMAL(4, 2) = NULL,
     @IsActive BIT
 AS
 BEGIN
@@ -20,8 +22,10 @@ BEGIN
            [Category] = @Category,
            [Language] = @Language,
            [ModelHint] = @ModelHint,
+           [DefaultModelId] = @DefaultModelId,
            [Temperature] = @Temperature,
            [MaxTokens] = @MaxTokens,
+           [TopP] = @TopP,
            [IsActive] = @IsActive,
            [UpdatedAt] = SYSUTCDATETIME()
      WHERE [Id] = @Id;

@@ -4,4 +4,5 @@ public class AnalyzeProvider
 {
     public required string Name { get; init; }
     public required bool Enabled { get; init; }
+    public IReadOnlyCollection<AiModel> Models { get; init; } = [];
 }

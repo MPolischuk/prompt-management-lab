@@ -17,8 +17,14 @@ public class AnalyzeRepository(IDbConnectionFactory connectionFactory) : IAnalyz
             {
                 run.PromptId,
                 run.Provider,
+                run.ModelId,
                 run.Input,
                 run.Output,
+                run.Temperature,
+                run.MaxTokens,
+                run.TopP,
+                run.PromptSnapshot,
+                run.PromptSnapshotHash,
                 run.Status,
                 run.ErrorMessage,
                 run.LatencyMs

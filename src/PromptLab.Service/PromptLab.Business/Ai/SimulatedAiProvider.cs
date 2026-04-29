@@ -7,9 +7,10 @@ public class SimulatedAiProvider : IAiProvider
 {
     public string Name => "simulated";
 
-    public Task<AnalyzeExecutionResult> AnalyzeAsync(Prompt prompt, AnalyzeRequest request, CancellationToken cancellationToken)
+    public Task<AnalyzeExecutionResult> AnalyzeAsync(Prompt prompt, AnalyzeExecutionRequest request, CancellationToken cancellationToken)
     {
-        var output = $"[SIMULATED] Prompt '{prompt.Title}' ejecutado con input: {request.Input ?? "(sin input)"}";
+        var output =
+            $"[SIMULATED] Provider={request.Provider} Model={request.ModelId} Prompt='{prompt.Title}' input: {request.Input ?? "(sin input)"}";
         return Task.FromResult(new AnalyzeExecutionResult
         {
             Output = output,

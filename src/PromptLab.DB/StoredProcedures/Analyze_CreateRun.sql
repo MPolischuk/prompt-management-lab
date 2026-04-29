@@ -1,8 +1,14 @@
 CREATE PROCEDURE [dbo].[Analyze_CreateRun]
     @PromptId UNIQUEIDENTIFIER,
     @Provider NVARCHAR(50),
+    @ModelId NVARCHAR(100) = NULL,
     @Input NVARCHAR(MAX) = NULL,
     @Output NVARCHAR(MAX) = NULL,
+    @Temperature DECIMAL(4, 2) = NULL,
+    @MaxTokens INT = NULL,
+    @TopP DECIMAL(4, 2) = NULL,
+    @PromptSnapshot NVARCHAR(MAX) = NULL,
+    @PromptSnapshotHash NVARCHAR(128) = NULL,
     @Status NVARCHAR(20),
     @ErrorMessage NVARCHAR(2000) = NULL,
     @LatencyMs INT = NULL
@@ -21,11 +27,11 @@ BEGIN
 
     INSERT INTO [dbo].[AnalysisRuns]
     (
-        [Id], [PromptId], [Provider], [Input], [Output], [Status], [ErrorMessage], [LatencyMs], [CreatedAt], [CompletedAt]
+        [Id], [PromptId], [Provider], [ModelId], [Input], [Output], [Temperature], [MaxTokens], [TopP], [PromptSnapshot], [PromptSnapshotHash], [Status], [ErrorMessage], [LatencyMs], [CreatedAt], [CompletedAt]
     )
     VALUES
     (
-        @Id, @PromptId, @Provider, @Input, @Output, @Status, @ErrorMessage, @LatencyMs, SYSUTCDATETIME(), @CompletedAt
+        @Id, @PromptId, @Provider, @ModelId, @Input, @Output, @Temperature, @MaxTokens, @TopP, @PromptSnapshot, @PromptSnapshotHash, @Status, @ErrorMessage, @LatencyMs, SYSUTCDATETIME(), @CompletedAt
     );
 
     SELECT CAST(1 AS BIT) AS [Success], @Id AS [EntityId], CAST(NULL AS NVARCHAR(500)) AS [Message];

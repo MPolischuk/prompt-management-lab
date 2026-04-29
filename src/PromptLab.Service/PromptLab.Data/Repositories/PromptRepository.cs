@@ -21,8 +21,10 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
                 request.Category,
                 request.Language,
                 request.ModelHint,
+                request.DefaultModelId,
                 request.Temperature,
-                request.MaxTokens
+                request.MaxTokens,
+                request.TopP
             },
             commandType: CommandType.StoredProcedure);
 
@@ -43,8 +45,10 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
                 request.Category,
                 request.Language,
                 request.ModelHint,
+                request.DefaultModelId,
                 request.Temperature,
                 request.MaxTokens,
+                request.TopP,
                 request.IsActive
             },
             commandType: CommandType.StoredProcedure);
@@ -131,8 +135,10 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
             Category = row.Category,
             Language = row.Language,
             ModelHint = row.ModelHint,
+            DefaultModelId = row.DefaultModelId,
             Temperature = row.Temperature,
             MaxTokens = row.MaxTokens,
+            TopP = row.TopP,
             IsActive = row.IsActive,
             CreatedAt = row.CreatedAt,
             UpdatedAt = row.UpdatedAt
@@ -148,8 +154,10 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
         public string? Category { get; init; }
         public string? Language { get; init; }
         public string? ModelHint { get; init; }
+        public string? DefaultModelId { get; init; }
         public decimal? Temperature { get; init; }
         public int? MaxTokens { get; init; }
+        public decimal? TopP { get; init; }
         public bool IsActive { get; init; }
         public DateTime CreatedAt { get; init; }
         public DateTime UpdatedAt { get; init; }

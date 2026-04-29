@@ -5,8 +5,10 @@ CREATE PROCEDURE [dbo].[Prompt_Create]
     @Category NVARCHAR(100) = NULL,
     @Language NVARCHAR(20) = NULL,
     @ModelHint NVARCHAR(100) = NULL,
+    @DefaultModelId NVARCHAR(100) = NULL,
     @Temperature DECIMAL(4, 2) = NULL,
-    @MaxTokens INT = NULL
+    @MaxTokens INT = NULL,
+    @TopP DECIMAL(4, 2) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -17,12 +19,12 @@ BEGIN
     INSERT INTO [dbo].[Prompts]
     (
         [Id], [Title], [Description], [Content], [Category], [Language],
-        [ModelHint], [Temperature], [MaxTokens], [IsActive], [CreatedAt], [UpdatedAt]
+        [ModelHint], [DefaultModelId], [Temperature], [MaxTokens], [TopP], [IsActive], [CreatedAt], [UpdatedAt]
     )
     VALUES
     (
         @Id, @Title, @Description, @Content, @Category, @Language,
-        @ModelHint, @Temperature, @MaxTokens, 1, @UtcNow, @UtcNow
+        @ModelHint, @DefaultModelId, @Temperature, @MaxTokens, @TopP, 1, @UtcNow, @UtcNow
     );
 
     SELECT
