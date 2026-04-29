@@ -10,6 +10,9 @@ using System.Text;
 
 namespace PromptLab.Business.Services;
 
+/// <summary>
+/// Implementa los casos de uso de analisis, resolviendo modelo/proveedor y persistiendo corridas.
+/// </summary>
 public class AnalyzeService(
     IPromptRepository promptRepository,
     IAnalyzeRepository analyzeRepository,
@@ -21,6 +24,7 @@ public class AnalyzeService(
     private const string ProvidersCacheKey = "analyze:providers";
     private const string ModelsCacheKey = "analyze:models";
 
+    /// <inheritdoc />
     public async Task<OperationResult> AnalyzeAsync(AnalyzeRequest request, CancellationToken cancellationToken)
     {
         var prompt = await promptRepository.GetByIdAsync(request.PromptId, cancellationToken);
@@ -90,11 +94,13 @@ public class AnalyzeService(
         return persistence;
     }
 
+    /// <inheritdoc />
     public Task<AnalyzeRun?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return analyzeRepository.GetRunByIdAsync(id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public Task<IReadOnlyCollection<AnalyzeProvider>> GetProvidersAsync(CancellationToken cancellationToken)
     {
         if (cache.TryGetValue(ProvidersCacheKey, out IReadOnlyCollection<AnalyzeProvider>? cached) && cached is not null)
@@ -128,6 +134,7 @@ public class AnalyzeService(
         return Task.FromResult<IReadOnlyCollection<AnalyzeProvider>>(providers);
     }
 
+    /// <inheritdoc />
     public Task<IReadOnlyCollection<AiModel>> GetModelsAsync(CancellationToken cancellationToken)
     {
         if (cache.TryGetValue(ModelsCacheKey, out IReadOnlyCollection<AiModel>? cached) && cached is not null)

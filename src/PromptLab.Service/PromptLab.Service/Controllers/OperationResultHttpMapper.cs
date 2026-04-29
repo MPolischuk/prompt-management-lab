@@ -3,8 +3,12 @@ using PromptLab.Entities.Common;
 
 namespace PromptLab.Service.Controllers;
 
+/// <summary>
+/// Convierte un <see cref="OperationResult"/> en una respuesta HTTP consistente.
+/// </summary>
 internal static class OperationResultHttpMapper
 {
+    /// <summary>Mapea el resultado de negocio a un codigo HTTP.</summary>
     public static IActionResult ToHttpResult(this ControllerBase controller, OperationResult result)
     {
         if (result.Success)

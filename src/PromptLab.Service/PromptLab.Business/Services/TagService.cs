@@ -7,6 +7,9 @@ using PromptLab.Entities.Tags;
 
 namespace PromptLab.Business.Services;
 
+/// <summary>
+/// Implementa los casos de uso de gestion de tags y cache asociado.
+/// </summary>
 public class TagService(
     ITagRepository repository,
     IMemoryCache cache,
@@ -14,6 +17,7 @@ public class TagService(
 {
     private const string TagsAllCacheKey = "tags:all";
 
+    /// <inheritdoc />
     public async Task<IReadOnlyCollection<Tag>> GetAllAsync(CancellationToken cancellationToken)
     {
         if (cache.TryGetValue(TagsAllCacheKey, out IReadOnlyCollection<Tag>? cached) && cached is not null)
@@ -26,6 +30,7 @@ public class TagService(
         return result;
     }
 
+    /// <inheritdoc />
     public Task<IReadOnlyCollection<Tag>> SearchAsync(string? query, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(query))
@@ -36,6 +41,7 @@ public class TagService(
         return repository.SearchAsync(query, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<OperationResult> CreateAsync(CreateTagRequest request, CancellationToken cancellationToken)
     {
         var result = await repository.CreateAsync(request, cancellationToken);

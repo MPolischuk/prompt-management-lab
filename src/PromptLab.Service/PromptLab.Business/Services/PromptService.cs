@@ -7,12 +7,16 @@ using PromptLab.Entities.Prompts;
 
 namespace PromptLab.Business.Services;
 
+/// <summary>
+/// Implementa los casos de uso de gestion de prompts y coordinacion de cache.
+/// </summary>
 public class PromptService(
     IPromptRepository repository,
     IMemoryCache cache,
     IOptions<CacheOptions> cacheOptions) : IPromptService
 {
     private const string SearchVersionKey = "prompt:search:version";
+    /// <inheritdoc />
     public async Task<OperationResult> CreateAsync(UpsertPromptRequest request, CancellationToken cancellationToken)
     {
         var result = await repository.CreateAsync(request, cancellationToken);
@@ -31,6 +35,7 @@ public class PromptService(
         return result;
     }
 
+    /// <inheritdoc />
     public async Task<OperationResult> UpdateAsync(Guid id, UpsertPromptRequest request, CancellationToken cancellationToken)
     {
         var result = await repository.UpdateAsync(id, request, cancellationToken);
@@ -45,6 +50,7 @@ public class PromptService(
         return result;
     }
 
+    /// <inheritdoc />
     public async Task<OperationResult> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
         var result = await repository.DeleteAsync(id, cancellationToken);
@@ -57,11 +63,13 @@ public class PromptService(
         return result;
     }
 
+    /// <inheritdoc />
     public Task<Prompt?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return repository.GetByIdAsync(id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<OperationResult> SetTagsAsync(Guid promptId, IReadOnlyCollection<Guid> tagIds, CancellationToken cancellationToken)
     {
         var result = await repository.SetTagsAsync(promptId, tagIds, cancellationToken);
@@ -73,6 +81,7 @@ public class PromptService(
         return result;
     }
 
+    /// <inheritdoc />
     public async Task<PagedResponse<Prompt>> SearchAsync(PromptSearchRequest request, CancellationToken cancellationToken)
     {
         var cacheKey = BuildSearchKey(request);

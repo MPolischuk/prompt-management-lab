@@ -8,8 +8,12 @@ namespace PromptLab.Service.Controllers;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/[controller]")]
+/// <summary>
+/// Expone endpoints para consulta y creacion de tags.
+/// </summary>
 public class TagsController(ITagService service) : ControllerBase
 {
+    /// <summary>Obtiene todos los tags o filtra por query.</summary>
     [HttpGet]
     public async Task<IActionResult> GetAllAsync([FromQuery] string? query, CancellationToken cancellationToken)
     {
@@ -20,6 +24,7 @@ public class TagsController(ITagService service) : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>Crea un nuevo tag.</summary>
     [HttpPost]
     public async Task<IActionResult> CreateAsync([FromBody] CreateTagRequest request, CancellationToken cancellationToken)
     {
