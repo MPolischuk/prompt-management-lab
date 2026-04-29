@@ -1,0 +1,6 @@
+@PromptLab.Service_HostAddress = http://localhost:5106
+
+GET {{PromptLab.Service_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

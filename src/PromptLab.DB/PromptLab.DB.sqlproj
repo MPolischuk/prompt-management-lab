@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>PromptLab.DB</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{b28a5eb0-ab95-4cd3-b4fd-d5fd3aa9be80}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootNamespace>PromptLab.DB</RootNamespace>
+    <AssemblyName>PromptLab.DB</AssemblyName>
+    <ModelCollation>1033, CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="Tables" />
+    <Folder Include="Functions" />
+    <Folder Include="StoredProcedures" />
+    <Folder Include="PostDeploy" />
+    <Folder Include="Deploy\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="Tables\Prompts.sql" />
+    <Build Include="Tables\Tags.sql" />
+    <Build Include="Tables\PromptTags.sql" />
+    <Build Include="Tables\AnalysisRuns.sql" />
+    <Build Include="Functions\fn_NormalizeSlug.sql" />
+    <Build Include="Functions\fn_HasPromptTag.sql" />
+    <Build Include="StoredProcedures\Prompt_Create.sql" />
+    <Build Include="StoredProcedures\Prompt_Update.sql" />
+    <Build Include="StoredProcedures\Prompt_Delete.sql" />
+    <Build Include="StoredProcedures\Prompt_GetById.sql" />
+    <Build Include="StoredProcedures\Prompt_Search.sql" />
+    <Build Include="StoredProcedures\Prompt_SetTags.sql" />
+    <Build Include="StoredProcedures\Tag_Create.sql" />
+    <Build Include="StoredProcedures\Tag_GetAll.sql" />
+    <Build Include="StoredProcedures\Tag_Search.sql" />
+    <Build Include="StoredProcedures\Analyze_CreateRun.sql" />
+    <Build Include="StoredProcedures\Analyze_GetRunById.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <PostDeploy Include="PostDeploy\PostDeploy.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Deploy\PromptLab.DB.local.publish.xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+</Project>
