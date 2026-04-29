@@ -21,7 +21,7 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
                 request.Category,
                 request.Language,
                 request.ModelHint,
-                request.DefaultModelId,
+                request.TargetModelId,
                 request.Temperature,
                 request.MaxTokens,
                 request.TopP
@@ -45,7 +45,7 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
                 request.Category,
                 request.Language,
                 request.ModelHint,
-                request.DefaultModelId,
+                request.TargetModelId,
                 request.Temperature,
                 request.MaxTokens,
                 request.TopP,
@@ -135,7 +135,7 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
             Category = row.Category,
             Language = row.Language,
             ModelHint = row.ModelHint,
-            DefaultModelId = row.DefaultModelId,
+            TargetModelId = row.TargetModelId,
             Temperature = row.Temperature,
             MaxTokens = row.MaxTokens,
             TopP = row.TopP,
@@ -154,7 +154,7 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
         public string? Category { get; init; }
         public string? Language { get; init; }
         public string? ModelHint { get; init; }
-        public string? DefaultModelId { get; init; }
+        public string? TargetModelId { get; init; }
         public decimal? Temperature { get; init; }
         public int? MaxTokens { get; init; }
         public decimal? TopP { get; init; }

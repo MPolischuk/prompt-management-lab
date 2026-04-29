@@ -9,7 +9,7 @@ public class Prompt
     public string? Category { get; init; }
     public string? Language { get; init; }
     public string? ModelHint { get; init; }
-    public string? DefaultModelId { get; init; }
+    public string? TargetModelId { get; init; }
     public decimal? Temperature { get; init; }
     public int? MaxTokens { get; init; }
     public decimal? TopP { get; init; }

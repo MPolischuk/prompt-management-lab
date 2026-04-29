@@ -163,9 +163,9 @@ public class AnalyzeService(
             return modelCatalog.GetValueOrDefault(request.ModelId);
         }
 
-        if (!string.IsNullOrWhiteSpace(prompt.DefaultModelId))
+        if (!string.IsNullOrWhiteSpace(prompt.TargetModelId))
         {
-            return modelCatalog.GetValueOrDefault(prompt.DefaultModelId);
+            return modelCatalog.GetValueOrDefault(prompt.TargetModelId);
         }
 
         if (!string.IsNullOrWhiteSpace(prompt.ModelHint))

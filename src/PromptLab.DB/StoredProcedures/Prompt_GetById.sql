@@ -12,7 +12,7 @@ BEGIN
         p.[Category],
         p.[Language],
         p.[ModelHint],
-        p.[DefaultModelId],
+        p.[TargetModelId],
         p.[Temperature],
         p.[MaxTokens],
         p.[TopP],

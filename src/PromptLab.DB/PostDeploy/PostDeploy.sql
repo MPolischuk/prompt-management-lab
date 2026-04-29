@@ -36,7 +36,7 @@ BEGIN
         @Category = N'Sales',
         @Language = N'es',
         @ModelHint = N'gpt-4o-mini',
-        @DefaultModelId = N'gpt-5.5',
+        @TargetModelId = N'gpt-5.5',
         @Temperature = 0.70,
         @MaxTokens = 350,
         @TopP = 1.00;
@@ -51,7 +51,7 @@ BEGIN
         @Category = N'Operations',
         @Language = N'es',
         @ModelHint = N'claude-3-5-sonnet',
-        @DefaultModelId = N'claude-sonnet',
+        @TargetModelId = N'claude-sonnet',
         @Temperature = 0.40,
         @MaxTokens = 500,
         @TopP = 0.95;
@@ -66,7 +66,7 @@ BEGIN
         @Category = N'Engineering',
         @Language = N'en',
         @ModelHint = N'gemini-1.5-pro',
-        @DefaultModelId = N'gemini-2.5-pro',
+        @TargetModelId = N'gemini-2.5-pro',
         @Temperature = 0.30,
         @MaxTokens = 600,
         @TopP = 0.90;

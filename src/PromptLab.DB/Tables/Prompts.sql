@@ -7,7 +7,7 @@ CREATE TABLE [dbo].[Prompts]
     [Category] NVARCHAR(100) NULL,
     [Language] NVARCHAR(20) NULL,
     [ModelHint] NVARCHAR(100) NULL,
-    [DefaultModelId] NVARCHAR(100) NULL,
+    [TargetModelId] NVARCHAR(100) NULL,
     [Temperature] DECIMAL(4, 2) NULL,
     [MaxTokens] INT NULL,
     [TopP] DECIMAL(4, 2) NULL,
@@ -22,7 +22,7 @@ CREATE TABLE [dbo].[Prompts]
 
 GO
 
-CREATE NONCLUSTERED INDEX [IX_Prompts_Title]
+CREATE UNIQUE NONCLUSTERED INDEX [UX_Prompts_Title]
     ON [dbo].[Prompts]([Title] ASC);
 
 GO

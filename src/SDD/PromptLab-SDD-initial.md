@@ -48,13 +48,15 @@ Parametros sugeridos:
 - `category`: categoria funcional.
 - `language`: idioma del prompt.
 - `modelHint`: sugerencia de modelo.
-- `defaultModelId`: modelo por defecto para ejecucion (`gpt-5.5`, `claude-sonnet`, etc).
+- `targetModelId`: modelo objetivo para el que el prompt fue pensado (`gpt-5.5`, `claude-sonnet`, etc). No limita la ejecucion en otros modelos.
 - `temperature`: temperatura sugerida para ejecucion.
 - `maxTokens`: maximo de tokens sugerido.
 - `topP`: valor sugerido de muestreo nucleus.
 - `isActive`: estado logico.
 - `createdAt`: fecha de creacion.
 - `updatedAt`: fecha de ultima modificacion.
+
+El titulo del prompt debera ser unico para evitar ambiguedad en busquedas, seleccion y auditoria de corridas.
 
 ### 3.2 Tags
 

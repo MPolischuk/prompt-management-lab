@@ -82,7 +82,7 @@ public class AnalyzeServiceTests
                 Title = "Prompt",
                 Content = "Content",
                 IsActive = true,
-                DefaultModelId = "simulated-default",
+                TargetModelId = "simulated-default",
                 Temperature = 0.3m
             });
 
