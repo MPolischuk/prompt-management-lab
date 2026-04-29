@@ -1,4 +1,5 @@
 using System.Data;
+using PromptLab.Business.Repositories;
 using PromptLab.Data.Infrastructure;
 using PromptLab.Entities.Common;
 using PromptLab.Entities.Tags;
@@ -13,7 +14,8 @@ public class TagRepository(IDbConnectionFactory connectionFactory) : ITagReposit
         using var connection = connectionFactory.CreateConnection();
         var rows = await connection.ExecuteQueryAsync<Tag>(
             StoredProcedures.TagGetAll,
-            commandType: CommandType.StoredProcedure);
+            commandType: CommandType.StoredProcedure,
+            cancellationToken: cancellationToken);
 
         return rows.ToList();
     }
@@ -24,7 +26,8 @@ public class TagRepository(IDbConnectionFactory connectionFactory) : ITagReposit
         var rows = await connection.ExecuteQueryAsync<Tag>(
             StoredProcedures.TagSearch,
             new { Query = query },
-            commandType: CommandType.StoredProcedure);
+            commandType: CommandType.StoredProcedure,
+            cancellationToken: cancellationToken);
 
         return rows.ToList();
     }
@@ -35,7 +38,8 @@ public class TagRepository(IDbConnectionFactory connectionFactory) : ITagReposit
         var rows = await connection.ExecuteQueryAsync<OperationResult>(
             StoredProcedures.TagCreate,
             new { request.Name },
-            commandType: CommandType.StoredProcedure);
+            commandType: CommandType.StoredProcedure,
+            cancellationToken: cancellationToken);
 
         return rows.First();
     }

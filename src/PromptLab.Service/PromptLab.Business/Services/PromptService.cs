@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using PromptLab.Business.Configuration;
-using PromptLab.Data.Repositories;
+using PromptLab.Business.Repositories;
 using PromptLab.Entities.Common;
 using PromptLab.Entities.Prompts;
 
@@ -16,6 +16,11 @@ public class PromptService(
     public async Task<OperationResult> CreateAsync(UpsertPromptRequest request, CancellationToken cancellationToken)
     {
         var result = await repository.CreateAsync(request, cancellationToken);
+        if (!result.Success)
+        {
+            return result;
+        }
+
         InvalidatePromptSearchCache();
 
         if (result.Success && result.EntityId.HasValue && request.TagIds.Count > 0)
@@ -29,12 +34,13 @@ public class PromptService(
     public async Task<OperationResult> UpdateAsync(Guid id, UpsertPromptRequest request, CancellationToken cancellationToken)
     {
         var result = await repository.UpdateAsync(id, request, cancellationToken);
-        InvalidatePromptSearchCache();
-
-        if (result.Success)
+        if (!result.Success)
         {
-            await repository.SetTagsAsync(id, request.TagIds, cancellationToken);
+            return result;
         }
+
+        InvalidatePromptSearchCache();
+        await repository.SetTagsAsync(id, request.TagIds, cancellationToken);
 
         return result;
     }
@@ -42,6 +48,11 @@ public class PromptService(
     public async Task<OperationResult> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
         var result = await repository.DeleteAsync(id, cancellationToken);
+        if (!result.Success)
+        {
+            return result;
+        }
+
         InvalidatePromptSearchCache();
         return result;
     }
@@ -51,10 +62,15 @@ public class PromptService(
         return repository.GetByIdAsync(id, cancellationToken);
     }
 
-    public Task<OperationResult> SetTagsAsync(Guid promptId, IReadOnlyCollection<Guid> tagIds, CancellationToken cancellationToken)
+    public async Task<OperationResult> SetTagsAsync(Guid promptId, IReadOnlyCollection<Guid> tagIds, CancellationToken cancellationToken)
     {
-        InvalidatePromptSearchCache();
-        return repository.SetTagsAsync(promptId, tagIds, cancellationToken);
+        var result = await repository.SetTagsAsync(promptId, tagIds, cancellationToken);
+        if (result.Success)
+        {
+            InvalidatePromptSearchCache();
+        }
+
+        return result;
     }
 
     public async Task<PagedResponse<Prompt>> SearchAsync(PromptSearchRequest request, CancellationToken cancellationToken)

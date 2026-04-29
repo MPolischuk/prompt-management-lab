@@ -14,7 +14,7 @@ public class AnalyzeController(IAnalyzeService service) : ControllerBase
     public async Task<IActionResult> AnalyzeAsync([FromBody] AnalyzeRequest request, CancellationToken cancellationToken)
     {
         var result = await service.AnalyzeAsync(request, cancellationToken);
-        return result.Success ? Ok(result) : BadRequest(result);
+        return this.ToHttpResult(result);
     }
 
     [HttpGet("{id:guid}")]

@@ -1,4 +1,5 @@
 using System.Data;
+using PromptLab.Business.Repositories;
 using PromptLab.Data.Infrastructure;
 using PromptLab.Entities.Common;
 using PromptLab.Entities.Prompts;
@@ -26,7 +27,8 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
                 request.MaxTokens,
                 request.TopP
             },
-            commandType: CommandType.StoredProcedure);
+            commandType: CommandType.StoredProcedure,
+            cancellationToken: cancellationToken);
 
         return result.First();
     }
@@ -51,7 +53,8 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
                 request.TopP,
                 request.IsActive
             },
-            commandType: CommandType.StoredProcedure);
+            commandType: CommandType.StoredProcedure,
+            cancellationToken: cancellationToken);
 
         return result.First();
     }
@@ -62,7 +65,8 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
         var result = await connection.ExecuteQueryAsync<OperationResult>(
             StoredProcedures.PromptDelete,
             new { Id = id },
-            commandType: CommandType.StoredProcedure);
+            commandType: CommandType.StoredProcedure,
+            cancellationToken: cancellationToken);
 
         return result.First();
     }
@@ -73,7 +77,8 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
         var rows = await connection.ExecuteQueryAsync<Prompt>(
             StoredProcedures.PromptGetById,
             new { Id = id },
-            commandType: CommandType.StoredProcedure);
+            commandType: CommandType.StoredProcedure,
+            cancellationToken: cancellationToken);
 
         return rows.FirstOrDefault();
     }
@@ -95,7 +100,8 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
                 request.PageNumber,
                 request.PageSize
             },
-            commandType: CommandType.StoredProcedure)).ToList();
+            commandType: CommandType.StoredProcedure,
+            cancellationToken: cancellationToken)).ToList();
 
         var totalRows = rows.FirstOrDefault()?.TotalRows ?? 0;
         var items = rows.Select(Map).ToList();
@@ -119,7 +125,8 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
                 PromptId = promptId,
                 TagIds = string.Join(',', tagIds)
             },
-            commandType: CommandType.StoredProcedure);
+            commandType: CommandType.StoredProcedure,
+            cancellationToken: cancellationToken);
 
         return result.First();
     }

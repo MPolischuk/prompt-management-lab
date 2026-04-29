@@ -1,0 +1,72 @@
+using FluentAssertions;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using Moq;
+using PromptLab.Business.Configuration;
+using PromptLab.Business.Repositories;
+using PromptLab.Business.Services;
+using PromptLab.Entities.Common;
+using PromptLab.Entities.Prompts;
+
+namespace PromptLab.Business.Tests;
+
+public class PromptServiceTests
+{
+    [Fact]
+    public async Task CreateAsync_WhenRepositoryFails_DoesNotInvalidateCache()
+    {
+        var repository = new Mock<IPromptRepository>();
+        repository.Setup(r => r.CreateAsync(It.IsAny<UpsertPromptRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.Validation });
+
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        cache.Set("prompt:search:version", 5);
+        var service = new PromptService(repository.Object, cache, Options.Create(new CacheOptions()));
+
+        var result = await service.CreateAsync(new UpsertPromptRequest { Title = "t", Content = "c" }, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        cache.Get<int>("prompt:search:version").Should().Be(5);
+        repository.Verify(r => r.SetTagsAsync(It.IsAny<Guid>(), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenSuccessful_UpdatesTagsAndInvalidatesCache()
+    {
+        var repository = new Mock<IPromptRepository>();
+        repository.Setup(r => r.UpdateAsync(It.IsAny<Guid>(), It.IsAny<UpsertPromptRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true });
+        repository.Setup(r => r.SetTagsAsync(It.IsAny<Guid>(), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true });
+
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        cache.Set("prompt:search:version", 3);
+        var service = new PromptService(repository.Object, cache, Options.Create(new CacheOptions()));
+        var request = new UpsertPromptRequest { Title = "t", Content = "c", TagIds = [Guid.NewGuid()] };
+
+        var result = await service.UpdateAsync(Guid.NewGuid(), request, CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        cache.Get<int>("prompt:search:version").Should().Be(4);
+        repository.Verify(r => r.SetTagsAsync(It.IsAny<Guid>(), request.TagIds, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WhenCached_DoesNotCallRepositoryTwice()
+    {
+        var repository = new Mock<IPromptRepository>();
+        repository.Setup(r => r.SearchAsync(It.IsAny<PromptSearchRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PagedResponse<Prompt> { Items = [], PageNumber = 1, PageSize = 10, TotalRows = 0 });
+
+        var service = new PromptService(
+            repository.Object,
+            new MemoryCache(new MemoryCacheOptions()),
+            Options.Create(new CacheOptions { PromptSearchTtlSeconds = 60 }));
+
+        var request = new PromptSearchRequest { Query = "q", PageNumber = 1, PageSize = 10 };
+        _ = await service.SearchAsync(request, CancellationToken.None);
+        _ = await service.SearchAsync(request, CancellationToken.None);
+
+        repository.Verify(r => r.SearchAsync(It.IsAny<PromptSearchRequest>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+}

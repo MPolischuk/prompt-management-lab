@@ -2,7 +2,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using PromptLab.Business.Ai;
 using PromptLab.Business.Configuration;
-using PromptLab.Data.Repositories;
+using PromptLab.Business.Repositories;
 using PromptLab.Entities.Analyze;
 using PromptLab.Entities.Common;
 using System.Security.Cryptography;
@@ -26,7 +26,7 @@ public class AnalyzeService(
         var prompt = await promptRepository.GetByIdAsync(request.PromptId, cancellationToken);
         if (prompt is null)
         {
-            return new OperationResult { Success = false, Message = "Prompt not found." };
+            return new OperationResult { Success = false, Message = "Prompt not found.", ErrorCode = OperationErrorCode.NotFound };
         }
 
         var modelCatalog = aiOptions.Value.Models
@@ -36,19 +36,24 @@ public class AnalyzeService(
         var selectedModel = ResolveModel(request, prompt, modelCatalog);
         if (selectedModel is null)
         {
-            return new OperationResult { Success = false, Message = "Model not configured." };
+            return new OperationResult { Success = false, Message = "Model not configured.", ErrorCode = OperationErrorCode.Validation };
         }
 
         var selectedProvider = ResolveProvider(request, selectedModel);
         var provider = providerFactory.Resolve(selectedProvider);
         if (provider is null)
         {
-            return new OperationResult { Success = false, Message = "Provider not configured." };
+            return new OperationResult { Success = false, Message = "Provider not configured.", ErrorCode = OperationErrorCode.Unavailable };
         }
 
         if (!provider.Name.Equals(selectedModel.Provider, StringComparison.OrdinalIgnoreCase))
         {
-            return new OperationResult { Success = false, Message = "Model does not belong to selected provider." };
+            return new OperationResult
+            {
+                Success = false,
+                Message = "Model does not belong to selected provider.",
+                ErrorCode = OperationErrorCode.Validation
+            };
         }
 
         var effectiveSettings = BuildEffectiveSettings(request, prompt, selectedModel);
@@ -106,7 +111,11 @@ public class AnalyzeService(
                 g => (IReadOnlyCollection<AiModel>)g.Select(MapModel).ToArray(),
                 StringComparer.OrdinalIgnoreCase);
 
-        var providers = aiOptions.Value.EnabledProviders
+        var catalogProviders = aiOptions.Value.CatalogProviders.Count > 0
+            ? aiOptions.Value.CatalogProviders
+            : aiOptions.Value.EnabledProviders;
+
+        var providers = catalogProviders
             .Select(name => new AnalyzeProvider
             {
                 Name = name,

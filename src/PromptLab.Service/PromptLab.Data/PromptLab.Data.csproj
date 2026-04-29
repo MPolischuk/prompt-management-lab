@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\PromptLab.Business\PromptLab.Business.csproj" />
     <ProjectReference Include="..\PromptLab.Entities\PromptLab.Entities.csproj" />
   </ItemGroup>
 

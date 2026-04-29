@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using PromptLab.Business.Repositories;
 using PromptLab.Data.Configuration;
 using PromptLab.Data.Infrastructure;
 using PromptLab.Data.Repositories;

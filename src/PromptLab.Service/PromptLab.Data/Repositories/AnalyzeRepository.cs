@@ -1,4 +1,5 @@
 using System.Data;
+using PromptLab.Business.Repositories;
 using PromptLab.Data.Infrastructure;
 using PromptLab.Entities.Analyze;
 using PromptLab.Entities.Common;
@@ -29,7 +30,8 @@ public class AnalyzeRepository(IDbConnectionFactory connectionFactory) : IAnalyz
                 run.ErrorMessage,
                 run.LatencyMs
             },
-            commandType: CommandType.StoredProcedure);
+            commandType: CommandType.StoredProcedure,
+            cancellationToken: cancellationToken);
 
         return rows.First();
     }
@@ -40,7 +42,8 @@ public class AnalyzeRepository(IDbConnectionFactory connectionFactory) : IAnalyz
         var rows = await connection.ExecuteQueryAsync<AnalyzeRun>(
             StoredProcedures.AnalyzeGetRunById,
             new { Id = id },
-            commandType: CommandType.StoredProcedure);
+            commandType: CommandType.StoredProcedure,
+            cancellationToken: cancellationToken);
 
         return rows.FirstOrDefault();
     }

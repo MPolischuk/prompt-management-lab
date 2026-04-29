@@ -28,7 +28,12 @@ public class PromptsController(IPromptService service) : ControllerBase
     public async Task<IActionResult> CreateAsync([FromBody] UpsertPromptRequest request, CancellationToken cancellationToken)
     {
         var result = await service.CreateAsync(request, cancellationToken);
-        if (!result.Success || !result.EntityId.HasValue)
+        if (!result.Success)
+        {
+            return this.ToHttpResult(result);
+        }
+
+        if (!result.EntityId.HasValue)
         {
             return BadRequest(result);
         }
@@ -40,20 +45,20 @@ public class PromptsController(IPromptService service) : ControllerBase
     public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UpsertPromptRequest request, CancellationToken cancellationToken)
     {
         var result = await service.UpdateAsync(id, request, cancellationToken);
-        return result.Success ? Ok(result) : NotFound(result);
+        return this.ToHttpResult(result);
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
         var result = await service.DeleteAsync(id, cancellationToken);
-        return result.Success ? Ok(result) : NotFound(result);
+        return this.ToHttpResult(result);
     }
 
     [HttpPut("{id:guid}/tags")]
     public async Task<IActionResult> SetTagsAsync(Guid id, [FromBody] IReadOnlyCollection<Guid> tagIds, CancellationToken cancellationToken)
     {
         var result = await service.SetTagsAsync(id, tagIds, cancellationToken);
-        return result.Success ? Ok(result) : NotFound(result);
+        return this.ToHttpResult(result);
     }
 }

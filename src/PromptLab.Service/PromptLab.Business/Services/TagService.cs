@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using PromptLab.Business.Configuration;
-using PromptLab.Data.Repositories;
+using PromptLab.Business.Repositories;
 using PromptLab.Entities.Common;
 using PromptLab.Entities.Tags;
 
@@ -39,7 +39,11 @@ public class TagService(
     public async Task<OperationResult> CreateAsync(CreateTagRequest request, CancellationToken cancellationToken)
     {
         var result = await repository.CreateAsync(request, cancellationToken);
-        cache.Remove(TagsAllCacheKey);
+        if (result.Success)
+        {
+            cache.Remove(TagsAllCacheKey);
+        }
+
         return result;
     }
 }

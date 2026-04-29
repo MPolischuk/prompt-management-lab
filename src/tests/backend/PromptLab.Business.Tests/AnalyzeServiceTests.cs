@@ -4,11 +4,13 @@ using Microsoft.Extensions.Options;
 using Moq;
 using PromptLab.Business.Ai;
 using PromptLab.Business.Configuration;
+using PromptLab.Business.Repositories;
 using PromptLab.Business.Services;
-using PromptLab.Data.Repositories;
 using PromptLab.Entities.Analyze;
 using PromptLab.Entities.Common;
 using PromptLab.Entities.Prompts;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace PromptLab.Business.Tests;
 
@@ -136,5 +138,208 @@ public class AnalyzeServiceTests
 
         result.Success.Should().BeFalse();
         result.Message.Should().Be("Model does not belong to selected provider.");
+    }
+
+    [Fact]
+    public async Task AnalyzeAsync_WhenProviderIsNotRegistered_ReturnsUnavailableError()
+    {
+        var promptRepository = new Mock<IPromptRepository>();
+        promptRepository.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Prompt { Id = Guid.NewGuid(), Title = "Prompt", Content = "Content", IsActive = true });
+
+        var analyzeRepository = new Mock<IAnalyzeRepository>();
+        var aiOptions = BuildAiOptions();
+        var providerFactory = new AiProviderFactory([], Options.Create(aiOptions));
+        var memoryCache = new MemoryCache(new MemoryCacheOptions());
+
+        var service = new AnalyzeService(
+            promptRepository.Object,
+            analyzeRepository.Object,
+            providerFactory,
+            Options.Create(aiOptions),
+            Options.Create(new CacheOptions()),
+            memoryCache);
+
+        var result = await service.AnalyzeAsync(
+            new AnalyzeRequest { PromptId = Guid.NewGuid(), Provider = "simulated", ModelId = "simulated-default", Input = "input" },
+            CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be(OperationErrorCode.Unavailable);
+        result.Message.Should().Be("Provider not configured.");
+    }
+
+    [Fact]
+    public async Task AnalyzeAsync_UsesPromptTargetModel_WhenRequestModelIsMissing()
+    {
+        var promptId = Guid.NewGuid();
+        var promptRepository = new Mock<IPromptRepository>();
+        promptRepository.Setup(r => r.GetByIdAsync(promptId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Prompt
+            {
+                Id = promptId,
+                Title = "Prompt",
+                Content = "Content",
+                IsActive = true,
+                TargetModelId = "simulated-default"
+            });
+
+        var captured = default(AnalyzeRun);
+        var analyzeRepository = new Mock<IAnalyzeRepository>();
+        analyzeRepository.Setup(r => r.CreateRunAsync(It.IsAny<AnalyzeRun>(), It.IsAny<CancellationToken>()))
+            .Callback<AnalyzeRun, CancellationToken>((run, _) => captured = run)
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
+
+        var provider = new SimulatedAiProvider();
+        var aiOptions = BuildAiOptions();
+        var service = new AnalyzeService(
+            promptRepository.Object,
+            analyzeRepository.Object,
+            new AiProviderFactory([provider], Options.Create(aiOptions)),
+            Options.Create(aiOptions),
+            Options.Create(new CacheOptions()),
+            new MemoryCache(new MemoryCacheOptions()));
+
+        var result = await service.AnalyzeAsync(new AnalyzeRequest { PromptId = promptId, Input = "input" }, CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        captured.Should().NotBeNull();
+        captured!.ModelId.Should().Be("simulated-default");
+    }
+
+    [Fact]
+    public async Task AnalyzeAsync_UsesPromptModelHint_WhenTargetModelIsMissing()
+    {
+        var promptId = Guid.NewGuid();
+        var promptRepository = new Mock<IPromptRepository>();
+        promptRepository.Setup(r => r.GetByIdAsync(promptId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Prompt
+            {
+                Id = promptId,
+                Title = "Prompt",
+                Content = "Content",
+                IsActive = true,
+                ModelHint = "simulated-default"
+            });
+
+        var captured = default(AnalyzeRun);
+        var analyzeRepository = new Mock<IAnalyzeRepository>();
+        analyzeRepository.Setup(r => r.CreateRunAsync(It.IsAny<AnalyzeRun>(), It.IsAny<CancellationToken>()))
+            .Callback<AnalyzeRun, CancellationToken>((run, _) => captured = run)
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
+
+        var provider = new SimulatedAiProvider();
+        var aiOptions = BuildAiOptions();
+        var service = new AnalyzeService(
+            promptRepository.Object,
+            analyzeRepository.Object,
+            new AiProviderFactory([provider], Options.Create(aiOptions)),
+            Options.Create(aiOptions),
+            Options.Create(new CacheOptions()),
+            new MemoryCache(new MemoryCacheOptions()));
+
+        var result = await service.AnalyzeAsync(new AnalyzeRequest { PromptId = promptId, Input = "input" }, CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        captured.Should().NotBeNull();
+        captured!.ModelId.Should().Be("simulated-default");
+    }
+
+    [Fact]
+    public async Task AnalyzeAsync_PersistsPromptHashAndEffectiveSettings()
+    {
+        var promptId = Guid.NewGuid();
+        var prompt = new Prompt
+        {
+            Id = promptId,
+            Title = "Prompt",
+            Content = "Content",
+            IsActive = true,
+            TargetModelId = "simulated-default",
+            Temperature = 0.3m,
+            MaxTokens = 250,
+            TopP = 0.8m
+        };
+
+        var promptRepository = new Mock<IPromptRepository>();
+        promptRepository.Setup(r => r.GetByIdAsync(promptId, It.IsAny<CancellationToken>())).ReturnsAsync(prompt);
+
+        var captured = default(AnalyzeRun);
+        var analyzeRepository = new Mock<IAnalyzeRepository>();
+        analyzeRepository.Setup(r => r.CreateRunAsync(It.IsAny<AnalyzeRun>(), It.IsAny<CancellationToken>()))
+            .Callback<AnalyzeRun, CancellationToken>((run, _) => captured = run)
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
+
+        var aiOptions = BuildAiOptions();
+        var service = new AnalyzeService(
+            promptRepository.Object,
+            analyzeRepository.Object,
+            new AiProviderFactory([new SimulatedAiProvider()], Options.Create(aiOptions)),
+            Options.Create(aiOptions),
+            Options.Create(new CacheOptions()),
+            new MemoryCache(new MemoryCacheOptions()));
+
+        var result = await service.AnalyzeAsync(
+            new AnalyzeRequest
+            {
+                PromptId = promptId,
+                Input = "input",
+                Settings = new GenerationSettings { Temperature = 0.9m, MaxTokens = 999, TopP = 0.4m }
+            },
+            CancellationToken.None);
+
+        var expectedHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(prompt.Content)));
+        result.Success.Should().BeTrue();
+        captured.Should().NotBeNull();
+        captured!.PromptSnapshotHash.Should().Be(expectedHash);
+        captured.Temperature.Should().Be(0.9m);
+        captured.MaxTokens.Should().Be(999);
+        captured.TopP.Should().Be(0.4m);
+    }
+
+    [Fact]
+    public async Task GetProvidersAsync_UsesCache_AndCatalogProviders()
+    {
+        var aiOptions = BuildAiOptions();
+        aiOptions = new AiOptions
+        {
+            DefaultProvider = aiOptions.DefaultProvider,
+            Models = aiOptions.Models,
+            EnabledProviders = ["simulated"],
+            CatalogProviders = ["simulated", "openai"]
+        };
+
+        var service = new AnalyzeService(
+            Mock.Of<IPromptRepository>(),
+            Mock.Of<IAnalyzeRepository>(),
+            new AiProviderFactory([new SimulatedAiProvider()], Options.Create(aiOptions)),
+            Options.Create(aiOptions),
+            Options.Create(new CacheOptions { ProvidersTtlSeconds = 60 }),
+            new MemoryCache(new MemoryCacheOptions()));
+
+        var first = await service.GetProvidersAsync(CancellationToken.None);
+        var second = await service.GetProvidersAsync(CancellationToken.None);
+
+        ReferenceEquals(first, second).Should().BeTrue();
+        first.Select(p => p.Name).Should().Contain(["simulated", "openai"]);
+        first.Single(p => p.Name == "openai").Enabled.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetModelsAsync_UsesCache()
+    {
+        var aiOptions = BuildAiOptions();
+        var service = new AnalyzeService(
+            Mock.Of<IPromptRepository>(),
+            Mock.Of<IAnalyzeRepository>(),
+            new AiProviderFactory([new SimulatedAiProvider()], Options.Create(aiOptions)),
+            Options.Create(aiOptions),
+            Options.Create(new CacheOptions { ProvidersTtlSeconds = 60 }),
+            new MemoryCache(new MemoryCacheOptions()));
+
+        var first = await service.GetModelsAsync(CancellationToken.None);
+        var second = await service.GetModelsAsync(CancellationToken.None);
+
+        ReferenceEquals(first, second).Should().BeTrue();
     }
 }

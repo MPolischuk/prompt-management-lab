@@ -1,7 +1,7 @@
 using PromptLab.Entities.Common;
 using PromptLab.Entities.Prompts;
 
-namespace PromptLab.Data.Repositories;
+namespace PromptLab.Business.Repositories;
 
 public interface IPromptRepository
 {

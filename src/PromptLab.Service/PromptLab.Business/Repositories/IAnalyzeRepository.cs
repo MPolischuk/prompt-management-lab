@@ -1,7 +1,7 @@
 using PromptLab.Entities.Analyze;
 using PromptLab.Entities.Common;
 
-namespace PromptLab.Data.Repositories;
+namespace PromptLab.Business.Repositories;
 
 public interface IAnalyzeRepository
 {

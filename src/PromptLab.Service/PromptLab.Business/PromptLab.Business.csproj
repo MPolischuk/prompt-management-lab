@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PromptLab.Entities\PromptLab.Entities.csproj" />
-    <ProjectReference Include="..\PromptLab.Data\PromptLab.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
