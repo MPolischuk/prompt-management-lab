@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Moq;
 using PromptLab.Business.Ai;
+using PromptLab.Business.Ai.Contracts;
 using PromptLab.Business.Configuration;
 using PromptLab.Business.Services;
 using PromptLab.Entities.Analyze;
@@ -341,5 +342,49 @@ public class AnalyzeServiceTests
         var second = await service.GetModelsAsync(CancellationToken.None);
 
         ReferenceEquals(first, second).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetProvidersAsync_WhenVendorProviderRegistered_MarksCatalogEntryEnabled()
+    {
+        var aiOptions = new AiOptions
+        {
+            DefaultProvider = "simulated",
+            EnabledProviders = ["simulated", "openai"],
+            CatalogProviders = ["simulated", "openai"],
+            Models =
+            [
+                new AiModelOption
+                {
+                    Id = "simulated-default",
+                    Provider = "simulated",
+                    DisplayName = "Simulated Default",
+                    Enabled = true
+                },
+                new AiModelOption
+                {
+                    Id = "gpt-5.5",
+                    Provider = "openai",
+                    DisplayName = "GPT-5.5",
+                    Enabled = true
+                }
+            ]
+        };
+
+        var openAi = new Mock<IAiProvider>();
+        openAi.Setup(p => p.Name).Returns("openai");
+
+        var service = new AnalyzeService(
+            Mock.Of<IPromptRepository>(),
+            Mock.Of<IAnalyzeRepository>(),
+            new AiProviderFactory([new SimulatedAiProvider(), openAi.Object], Options.Create(aiOptions)),
+            Options.Create(aiOptions),
+            Options.Create(new CacheOptions { ProvidersTtlSeconds = 60 }),
+            new MemoryCache(new MemoryCacheOptions()));
+
+        var providers = await service.GetProvidersAsync(CancellationToken.None);
+
+        providers.Single(p => p.Name == "openai").Enabled.Should().BeTrue();
+        providers.Single(p => p.Name == "simulated").Enabled.Should().BeTrue();
     }
 }

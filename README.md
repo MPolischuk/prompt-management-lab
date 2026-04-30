@@ -35,6 +35,15 @@ Configurar al menos:
 - `Ai:DefaultProvider`
 - `Ai:EnabledProviders` (proveedores realmente implementados)
 - `Ai:CatalogProviders` (catalogo visible de proveedores)
+- `Ai:Providers:*` (OpenAI, Anthropic, Google): `Enabled`, `Mock`, `ApiKey` (secretos via variables de entorno o user-secrets), `BaseUrl` opcional, `TimeoutSeconds`
+
+Ejemplos de variables de entorno para claves (sin commitear valores reales):
+
+- `Ai__Providers__OpenAi__ApiKey`
+- `Ai__Providers__Anthropic__ApiKey`
+- `Ai__Providers__Google__ApiKey`
+
+Con `Mock: true` no se requiere `ApiKey` y las respuestas son simuladas conservando el nombre logico del proveedor (`openai`, `anthropic`, `google`).
 
 ## Ejecutar backend
 
