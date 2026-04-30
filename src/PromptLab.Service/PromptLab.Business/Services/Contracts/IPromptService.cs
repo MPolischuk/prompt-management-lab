@@ -1,7 +1,7 @@
 using PromptLab.Entities.Common;
 using PromptLab.Entities.Prompts;
 
-namespace PromptLab.Business.Services;
+namespace PromptLab.Business.Services.Contracts;
 
 /// <summary>
 /// Expone casos de uso para gestion de prompts.

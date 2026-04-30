@@ -2,9 +2,10 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using PromptLab.Business.Ai;
 using PromptLab.Business.Configuration;
-using PromptLab.Business.Repositories;
+using PromptLab.Business.Services.Contracts;
 using PromptLab.Entities.Analyze;
 using PromptLab.Entities.Common;
+using PromptLab.Entities.Contracts;
 using System.Security.Cryptography;
 using System.Text;
 

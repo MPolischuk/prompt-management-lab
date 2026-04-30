@@ -1,7 +1,7 @@
 using System.Data;
-using PromptLab.Business.Repositories;
 using PromptLab.Data.Infrastructure;
 using PromptLab.Entities.Common;
+using PromptLab.Entities.Contracts;
 using PromptLab.Entities.Tags;
 using RepoDb;
 

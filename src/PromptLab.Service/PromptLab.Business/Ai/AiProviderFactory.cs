@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using PromptLab.Business.Ai.Contracts;
 using PromptLab.Business.Configuration;
 
 namespace PromptLab.Business.Ai;

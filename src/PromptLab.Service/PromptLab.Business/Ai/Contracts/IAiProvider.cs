@@ -1,7 +1,7 @@
 using PromptLab.Entities.Analyze;
 using PromptLab.Entities.Prompts;
 
-namespace PromptLab.Business.Ai;
+namespace PromptLab.Business.Ai.Contracts;
 
 public interface IAiProvider
 {

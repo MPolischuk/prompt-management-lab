@@ -1,7 +1,7 @@
 using PromptLab.Entities.Analyze;
 using PromptLab.Entities.Common;
 
-namespace PromptLab.Business.Repositories;
+namespace PromptLab.Entities.Contracts;
 
 /// <summary>
 /// Define operaciones de persistencia para ejecuciones de analisis.

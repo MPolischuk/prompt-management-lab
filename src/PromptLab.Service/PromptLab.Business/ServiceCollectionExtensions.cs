@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PromptLab.Business.Ai;
+using PromptLab.Business.Ai.Contracts;
 using PromptLab.Business.Configuration;
 using PromptLab.Business.Services;
+using PromptLab.Business.Services.Contracts;
 
 namespace PromptLab.Business;
 

@@ -3,9 +3,9 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Moq;
 using PromptLab.Business.Configuration;
-using PromptLab.Business.Repositories;
 using PromptLab.Business.Services;
 using PromptLab.Entities.Common;
+using PromptLab.Entities.Contracts;
 using PromptLab.Entities.Tags;
 
 namespace PromptLab.Business.Tests;

@@ -1,6 +1,6 @@
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
-using PromptLab.Business.Services;
+using PromptLab.Business.Services.Contracts;
 
 namespace PromptLab.Service.Controllers;
 

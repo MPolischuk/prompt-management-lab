@@ -1,3 +1,4 @@
+using PromptLab.Business.Ai.Contracts;
 using PromptLab.Entities.Analyze;
 using PromptLab.Entities.Prompts;
 

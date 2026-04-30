@@ -1,7 +1,7 @@
 using PromptLab.Entities.Common;
 using PromptLab.Entities.Tags;
 
-namespace PromptLab.Business.Repositories;
+namespace PromptLab.Entities.Contracts;
 
 /// <summary>
 /// Define operaciones de persistencia para tags.

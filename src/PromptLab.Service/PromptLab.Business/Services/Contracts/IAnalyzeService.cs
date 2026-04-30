@@ -1,7 +1,7 @@
 using PromptLab.Entities.Analyze;
 using PromptLab.Entities.Common;
 
-namespace PromptLab.Business.Services;
+namespace PromptLab.Business.Services.Contracts;
 
 /// <summary>
 /// Expone casos de uso para ejecucion y consulta de analisis.
