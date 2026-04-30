@@ -69,4 +69,46 @@ public class TagServiceTests
 
         repository.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task CreateAsync_WhenSuccessful_InvalidatesCache()
+    {
+        var repository = new Mock<ITagRepository>();
+        repository.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new Tag { Id = Guid.NewGuid(), Name = "cached", Slug = "cached" }]);
+        repository.Setup(r => r.CreateAsync(It.IsAny<CreateTagRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
+        repository.Setup(r => r.SearchAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new Tag { Id = Guid.NewGuid(), Name = "new", Slug = "new" }]);
+
+        var service = new TagService(
+            repository.Object,
+            new MemoryCache(new MemoryCacheOptions()),
+            Options.Create(new CacheOptions()));
+
+        _ = await service.GetAllAsync(CancellationToken.None);
+        _ = await service.CreateAsync(new CreateTagRequest { Name = "new" }, CancellationToken.None);
+        _ = await service.GetAllAsync(CancellationToken.None);
+
+        repository.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task SearchAsync_WhenQueryHasValue_UsesRepositorySearch()
+    {
+        var repository = new Mock<ITagRepository>();
+        repository.Setup(r => r.SearchAsync("ai", It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new Tag { Id = Guid.NewGuid(), Name = "AI", Slug = "ai" }]);
+
+        var service = new TagService(
+            repository.Object,
+            new MemoryCache(new MemoryCacheOptions()),
+            Options.Create(new CacheOptions()));
+
+        var result = await service.SearchAsync("ai", CancellationToken.None);
+
+        result.Should().HaveCount(1);
+        repository.Verify(r => r.SearchAsync("ai", It.IsAny<CancellationToken>()), Times.Once);
+        repository.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
 }

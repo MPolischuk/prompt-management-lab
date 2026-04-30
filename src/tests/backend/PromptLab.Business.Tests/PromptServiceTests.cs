@@ -13,6 +13,30 @@ namespace PromptLab.Business.Tests;
 public class PromptServiceTests
 {
     [Fact]
+    public async Task CreateAsync_WhenSuccessfulWithTags_SetsTagsAndInvalidatesCache()
+    {
+        var createdId = Guid.NewGuid();
+        var tagIds = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        var repository = new Mock<IPromptRepository>();
+        repository.Setup(r => r.CreateAsync(It.IsAny<UpsertPromptRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = createdId });
+        repository.Setup(r => r.SetTagsAsync(createdId, It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true });
+
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        cache.Set("prompt:search:version", 2);
+        var service = new PromptService(repository.Object, cache, Options.Create(new CacheOptions()));
+
+        var result = await service.CreateAsync(
+            new UpsertPromptRequest { Title = "t", Content = "c", TagIds = tagIds },
+            CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        cache.Get<int>("prompt:search:version").Should().Be(3);
+        repository.Verify(r => r.SetTagsAsync(createdId, tagIds, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task CreateAsync_WhenRepositoryFails_DoesNotInvalidateCache()
     {
         var repository = new Mock<IPromptRepository>();
@@ -68,5 +92,22 @@ public class PromptServiceTests
         _ = await service.SearchAsync(request, CancellationToken.None);
 
         repository.Verify(r => r.SearchAsync(It.IsAny<PromptSearchRequest>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetTagsAsync_WhenSuccessful_InvalidatesSearchCache()
+    {
+        var repository = new Mock<IPromptRepository>();
+        repository.Setup(r => r.SetTagsAsync(It.IsAny<Guid>(), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true });
+
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        cache.Set("prompt:search:version", 7);
+        var service = new PromptService(repository.Object, cache, Options.Create(new CacheOptions()));
+
+        var result = await service.SetTagsAsync(Guid.NewGuid(), [Guid.NewGuid()], CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        cache.Get<int>("prompt:search:version").Should().Be(8);
     }
 }

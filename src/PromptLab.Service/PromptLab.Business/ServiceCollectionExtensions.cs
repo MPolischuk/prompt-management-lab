@@ -18,7 +18,10 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddPromptLabBusiness(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<CacheOptions>(configuration.GetSection(CacheOptions.SectionName));
-        services.Configure<AiOptions>(configuration.GetSection(AiOptions.SectionName));
+        services.AddSingleton<IValidateOptions<AiOptions>, AiOptionsValidator>();
+        services.AddOptions<AiOptions>()
+            .Bind(configuration.GetSection(AiOptions.SectionName))
+            .ValidateOnStart();
 
         services.AddMemoryCache();
 
