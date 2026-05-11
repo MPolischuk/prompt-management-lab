@@ -76,9 +76,35 @@ dotnet run --project src/PromptLab.Service/PromptLab.Service/PromptLab.Service.c
 
 Swagger: según perfil local, suele ser `https://localhost:7106/swagger` (revisar `Properties/launchSettings.json`).
 
-## Publicar / actualizar la base de datos
+## Publicar / actualizar la base de datos (`PromptLab.DB`)
 
-Desplegar el proyecto **PromptLab.DB** contra tu instancia SQL Server (Visual Studio SSDT, `sqlpackage`, o pipeline de CI). 
+Lo habitual en este repo es usar el **perfil de publicación** incluido:
+
+[`src/PromptLab.DB/Deploy/PromptLab.DB.local.publish.xml`](src/PromptLab.DB/Deploy/PromptLab.DB.local.publish.xml)
+
+Ahí está el **nombre de la base** (`TargetDatabaseName`), la **cadena de conexión** (`TargetConnectionString`) y opciones como `CreateNewDatabase` y `BlockOnPossibleDataLoss`. Ajustá la conexión si tu instancia no es `Data Source=.` o si usás autenticación SQL.
+
+### Opción recomendada: Visual Studio (SSDT)
+
+1. Abrí la solución y el proyecto **PromptLab.DB** (SQL Server Database Project).
+2. Clic derecho en el proyecto → **Publicar…** (o **Publish**).
+3. Elegí o importá el perfil que apunte al archivo anterior (`Deploy\PromptLab.DB.local.publish.xml`), o copiá sus valores a un perfil nuevo.
+4. Publicá: se aplica el modelo (tablas, SPs, `PostDeploy`, etc.) contra la base indicada.
+
+### Otra forma: `SqlPackage` (línea de comandos / CI)
+
+1. Generá el **`.dacpac`** publicando o compilando el proyecto **PromptLab.DB** (en CI suele hacerse con MSBuild sobre el `.sqlproj`).
+2. Ejecutá **SqlPackage** (herramienta de [Microsoft](https://learn.microsoft.com/sql/tools/sqlpackage/sqlpackage-publish)) pasando el mismo perfil:
+
+```powershell
+SqlPackage /Action:Publish `
+  /SourceFile:"ruta\al\PromptLab.DB.dacpac" `
+  /Profile:"src\PromptLab.DB\Deploy\PromptLab.DB.local.publish.xml"
+```
+
+Adaptá rutas y, en pipelines, usá secretos/variables para la cadena de conexión en lugar del XML fijo si aplica.
+
+Si la base ya existía **antes** de incorporar tablas nuevas (`PromptVersions`, tests, etc.), puede hacer falta un **script de migración manual** además del publicar incremental, según políticas de `BlockOnPossibleDataLoss` y datos existentes.
 
 ## Ejecutar PromptLab.ClientApp 
 

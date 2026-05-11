@@ -7,7 +7,7 @@ Documentación general del repo: [README en la raíz](../../README.md).
 ## Requisitos
 
 - Node.js 20+ (recomendado)
-- API .NET en ejecución y base **PromptLab.DB** desplegada con el esquema actual (incluye tablas de versiones y de tests).
+- API .NET en ejecución y base **PromptLab.DB** desplegada con el esquema actual (incluye tablas de versiones y de tests). Instrucciones de publicación: sección *Publicar / actualizar la base de datos* en el [README del repositorio](../../README.md).
 
 ## Configuración
 
