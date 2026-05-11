@@ -17,6 +17,20 @@ namespace PromptLab.Business.Tests;
 
 public class AnalyzeServiceTests
 {
+    private static IAiProvider CreateProvider(string name = "simulated")
+    {
+        var provider = new Mock<IAiProvider>();
+        provider.SetupGet(p => p.Name).Returns(name);
+        provider.Setup(p => p.AnalyzeAsync(It.IsAny<Prompt>(), It.IsAny<AnalyzeExecutionRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AnalyzeExecutionResult
+            {
+                Output = "ok",
+                Status = "Completed",
+                LatencyMs = 1
+            });
+        return provider.Object;
+    }
+
     private static AiOptions BuildAiOptions()
     {
         return new AiOptions
@@ -94,7 +108,7 @@ public class AnalyzeServiceTests
             .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
 
         var aiOptions = BuildAiOptions();
-        var providerFactory = new AiProviderFactory([new SimulatedAiProvider()], Options.Create(aiOptions));
+        var providerFactory = new AiProviderFactory([CreateProvider()], Options.Create(aiOptions));
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
 
         var service = new AnalyzeService(
@@ -122,7 +136,7 @@ public class AnalyzeServiceTests
 
         var analyzeRepository = new Mock<IAnalyzeRepository>();
         var aiOptions = BuildAiOptions();
-        var providerFactory = new AiProviderFactory([new SimulatedAiProvider()], Options.Create(aiOptions));
+        var providerFactory = new AiProviderFactory([CreateProvider()], Options.Create(aiOptions));
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
 
         var service = new AnalyzeService(
@@ -191,7 +205,7 @@ public class AnalyzeServiceTests
             .Callback<AnalyzeRun, CancellationToken>((run, _) => captured = run)
             .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
 
-        var provider = new SimulatedAiProvider();
+        var provider = CreateProvider();
         var aiOptions = BuildAiOptions();
         var service = new AnalyzeService(
             promptRepository.Object,
@@ -229,7 +243,7 @@ public class AnalyzeServiceTests
             .Callback<AnalyzeRun, CancellationToken>((run, _) => captured = run)
             .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
 
-        var provider = new SimulatedAiProvider();
+        var provider = CreateProvider();
         var aiOptions = BuildAiOptions();
         var service = new AnalyzeService(
             promptRepository.Object,
@@ -275,7 +289,7 @@ public class AnalyzeServiceTests
         var service = new AnalyzeService(
             promptRepository.Object,
             analyzeRepository.Object,
-            new AiProviderFactory([new SimulatedAiProvider()], Options.Create(aiOptions)),
+            new AiProviderFactory([CreateProvider()], Options.Create(aiOptions)),
             Options.Create(aiOptions),
             Options.Create(new CacheOptions()),
             new MemoryCache(new MemoryCacheOptions()));
@@ -313,7 +327,7 @@ public class AnalyzeServiceTests
         var service = new AnalyzeService(
             Mock.Of<IPromptRepository>(),
             Mock.Of<IAnalyzeRepository>(),
-            new AiProviderFactory([new SimulatedAiProvider()], Options.Create(aiOptions)),
+            new AiProviderFactory([CreateProvider()], Options.Create(aiOptions)),
             Options.Create(aiOptions),
             Options.Create(new CacheOptions { ProvidersTtlSeconds = 60 }),
             new MemoryCache(new MemoryCacheOptions()));
@@ -333,7 +347,7 @@ public class AnalyzeServiceTests
         var service = new AnalyzeService(
             Mock.Of<IPromptRepository>(),
             Mock.Of<IAnalyzeRepository>(),
-            new AiProviderFactory([new SimulatedAiProvider()], Options.Create(aiOptions)),
+            new AiProviderFactory([CreateProvider()], Options.Create(aiOptions)),
             Options.Create(aiOptions),
             Options.Create(new CacheOptions { ProvidersTtlSeconds = 60 }),
             new MemoryCache(new MemoryCacheOptions()));
@@ -377,7 +391,7 @@ public class AnalyzeServiceTests
         var service = new AnalyzeService(
             Mock.Of<IPromptRepository>(),
             Mock.Of<IAnalyzeRepository>(),
-            new AiProviderFactory([new SimulatedAiProvider(), openAi.Object], Options.Create(aiOptions)),
+            new AiProviderFactory([CreateProvider(), openAi.Object], Options.Create(aiOptions)),
             Options.Create(aiOptions),
             Options.Create(new CacheOptions { ProvidersTtlSeconds = 60 }),
             new MemoryCache(new MemoryCacheOptions()));

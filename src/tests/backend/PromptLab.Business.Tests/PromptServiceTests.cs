@@ -12,6 +12,14 @@ namespace PromptLab.Business.Tests;
 
 public class PromptServiceTests
 {
+    private static Mock<IPromptVersionRepository> CreateVersionRepositoryMock()
+    {
+        var mock = new Mock<IPromptVersionRepository>();
+        mock.Setup(v => v.GetByPromptIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<PromptVersion>());
+        return mock;
+    }
+
     [Fact]
     public async Task CreateAsync_WhenSuccessfulWithTags_SetsTagsAndInvalidatesCache()
     {
@@ -25,7 +33,7 @@ public class PromptServiceTests
 
         var cache = new MemoryCache(new MemoryCacheOptions());
         cache.Set("prompt:search:version", 2);
-        var service = new PromptService(repository.Object, cache, Options.Create(new CacheOptions()));
+        var service = new PromptService(repository.Object, CreateVersionRepositoryMock().Object, cache, Options.Create(new CacheOptions()));
 
         var result = await service.CreateAsync(
             new UpsertPromptRequest { Title = "t", Content = "c", TagIds = tagIds },
@@ -45,7 +53,7 @@ public class PromptServiceTests
 
         var cache = new MemoryCache(new MemoryCacheOptions());
         cache.Set("prompt:search:version", 5);
-        var service = new PromptService(repository.Object, cache, Options.Create(new CacheOptions()));
+        var service = new PromptService(repository.Object, CreateVersionRepositoryMock().Object, cache, Options.Create(new CacheOptions()));
 
         var result = await service.CreateAsync(new UpsertPromptRequest { Title = "t", Content = "c" }, CancellationToken.None);
 
@@ -65,7 +73,7 @@ public class PromptServiceTests
 
         var cache = new MemoryCache(new MemoryCacheOptions());
         cache.Set("prompt:search:version", 3);
-        var service = new PromptService(repository.Object, cache, Options.Create(new CacheOptions()));
+        var service = new PromptService(repository.Object, CreateVersionRepositoryMock().Object, cache, Options.Create(new CacheOptions()));
         var request = new UpsertPromptRequest { Title = "t", Content = "c", TagIds = [Guid.NewGuid()] };
 
         var result = await service.UpdateAsync(Guid.NewGuid(), request, CancellationToken.None);
@@ -84,6 +92,7 @@ public class PromptServiceTests
 
         var service = new PromptService(
             repository.Object,
+            CreateVersionRepositoryMock().Object,
             new MemoryCache(new MemoryCacheOptions()),
             Options.Create(new CacheOptions { PromptSearchTtlSeconds = 60 }));
 
@@ -103,7 +112,7 @@ public class PromptServiceTests
 
         var cache = new MemoryCache(new MemoryCacheOptions());
         cache.Set("prompt:search:version", 7);
-        var service = new PromptService(repository.Object, cache, Options.Create(new CacheOptions()));
+        var service = new PromptService(repository.Object, CreateVersionRepositoryMock().Object, cache, Options.Create(new CacheOptions()));
 
         var result = await service.SetTagsAsync(Guid.NewGuid(), [Guid.NewGuid()], CancellationToken.None);
 

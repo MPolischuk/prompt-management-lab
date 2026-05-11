@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using PromptLab.Business;
 using PromptLab.Data;
+using PromptLab.Integrations;
 
 var builder = WebApplication.CreateBuilder(args);
 const string FrontendCorsPolicy = "FrontendCors";
@@ -14,7 +15,7 @@ builder.Services.AddCors(options =>
         FrontendCorsPolicy,
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000")
+            policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
@@ -28,6 +29,7 @@ builder.Services.AddApiVersioning(options =>
 });
 builder.Services.AddPromptLabData(builder.Configuration);
 builder.Services.AddPromptLabBusiness(builder.Configuration);
+builder.Services.AddPromptLabIntegrations(builder.Configuration);
 
 var app = builder.Build();
 

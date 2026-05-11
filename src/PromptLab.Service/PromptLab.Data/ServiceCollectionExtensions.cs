@@ -17,6 +17,10 @@ public static class ServiceCollectionExtensions
         services.Configure<SqlOptions>(configuration.GetSection(SqlOptions.SectionName));
         services.AddScoped<IDbConnectionFactory, SqlConnectionFactory>();
         services.AddScoped<IPromptRepository, PromptRepository>();
+        services.AddScoped<IPromptVersionRepository, PromptVersionRepository>();
+        services.AddScoped<ITestSuiteRepository, TestSuiteRepository>();
+        services.AddScoped<ITestCaseRepository, TestCaseRepository>();
+        services.AddScoped<ITestRunRepository, TestRunRepository>();
         services.AddScoped<ITagRepository, TagRepository>();
         services.AddScoped<IAnalyzeRepository, AnalyzeRepository>();
         return services;

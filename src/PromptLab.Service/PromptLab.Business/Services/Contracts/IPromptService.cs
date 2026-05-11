@@ -20,4 +20,6 @@ public interface IPromptService
     Task<PagedResponse<Prompt>> SearchAsync(PromptSearchRequest request, CancellationToken cancellationToken);
     /// <summary>Actualiza la lista de tags asociados a un prompt.</summary>
     Task<OperationResult> SetTagsAsync(Guid promptId, IReadOnlyCollection<Guid> tagIds, CancellationToken cancellationToken);
+    /// <summary>Historial de versiones de contenido del prompt.</summary>
+    Task<IReadOnlyList<PromptVersion>> GetVersionsAsync(Guid promptId, CancellationToken cancellationToken);
 }

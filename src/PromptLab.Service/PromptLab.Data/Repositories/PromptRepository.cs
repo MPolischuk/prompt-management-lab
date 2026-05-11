@@ -1,4 +1,5 @@
 using System.Data;
+using System.Text.Json;
 using PromptLab.Data.Infrastructure;
 using PromptLab.Entities.Common;
 using PromptLab.Entities.Contracts;
@@ -9,6 +10,8 @@ namespace PromptLab.Data.Repositories;
 
 public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptRepository
 {
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+
     public async Task<OperationResult> CreateAsync(UpsertPromptRequest request, CancellationToken cancellationToken)
     {
         using var connection = connectionFactory.CreateConnection();
@@ -74,13 +77,14 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
     public async Task<Prompt?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         using var connection = connectionFactory.CreateConnection();
-        var rows = await connection.ExecuteQueryAsync<Prompt>(
+        var rows = await connection.ExecuteQueryAsync<PromptGetByIdRow>(
             StoredProcedures.PromptGetById,
             new { Id = id },
             commandType: CommandType.StoredProcedure,
             cancellationToken: cancellationToken);
 
-        return rows.FirstOrDefault();
+        var row = rows.FirstOrDefault();
+        return row is null ? null : MapPrompt(row);
     }
 
     public async Task<PagedResponse<Prompt>> SearchAsync(PromptSearchRequest request, CancellationToken cancellationToken)
@@ -131,8 +135,11 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
         return result.First();
     }
 
-    private static Prompt Map(PromptSearchRow row)
+    private static Prompt Map(PromptSearchRow row) => MapPrompt(row);
+
+    private static Prompt MapPrompt(PromptGetByIdRow row)
     {
+        var summaries = ParseTagSummaries(row.TagsJson);
         return new Prompt
         {
             Id = row.Id,
@@ -146,13 +153,74 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
             Temperature = row.Temperature,
             MaxTokens = row.MaxTokens,
             TopP = row.TopP,
+            Version = row.Version,
             IsActive = row.IsActive,
             CreatedAt = row.CreatedAt,
-            UpdatedAt = row.UpdatedAt
+            UpdatedAt = row.UpdatedAt,
+            Tags = summaries.Select(t => t.Name).ToList(),
+            TagSummaries = summaries
         };
     }
 
-    private class PromptSearchRow
+    private static Prompt MapPrompt(PromptSearchRow row)
+    {
+        var summaries = ParseTagSummaries(row.TagsJson);
+        return new Prompt
+        {
+            Id = row.Id,
+            Title = row.Title,
+            Description = row.Description,
+            Content = row.Content ?? string.Empty,
+            Category = row.Category,
+            Language = row.Language,
+            ModelHint = row.ModelHint,
+            TargetModelId = row.TargetModelId,
+            Temperature = row.Temperature,
+            MaxTokens = row.MaxTokens,
+            TopP = row.TopP,
+            Version = row.Version,
+            IsActive = row.IsActive,
+            CreatedAt = row.CreatedAt,
+            UpdatedAt = row.UpdatedAt,
+            Tags = summaries.Select(t => t.Name).ToList(),
+            TagSummaries = summaries
+        };
+    }
+
+    private static IReadOnlyList<PromptTagSummary> ParseTagSummaries(string? tagsJson)
+    {
+        if (string.IsNullOrWhiteSpace(tagsJson))
+        {
+            return [];
+        }
+
+        try
+        {
+            var dtos = JsonSerializer.Deserialize<List<TagJsonDto>>(tagsJson, JsonOptions);
+            if (dtos is null || dtos.Count == 0)
+            {
+                return [];
+            }
+
+            return dtos
+                .Where(d => d.Name is not null && d.Slug is not null)
+                .Select(d => new PromptTagSummary { Id = d.Id, Name = d.Name!, Slug = d.Slug! })
+                .ToList();
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    private sealed class TagJsonDto
+    {
+        public Guid Id { get; set; }
+        public string? Name { get; set; }
+        public string? Slug { get; set; }
+    }
+
+    private sealed class PromptGetByIdRow
     {
         public Guid Id { get; init; }
         public string Title { get; init; } = string.Empty;
@@ -165,9 +233,31 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
         public decimal? Temperature { get; init; }
         public int? MaxTokens { get; init; }
         public decimal? TopP { get; init; }
+        public int Version { get; init; }
         public bool IsActive { get; init; }
         public DateTime CreatedAt { get; init; }
         public DateTime UpdatedAt { get; init; }
+        public string? TagsJson { get; init; }
+    }
+
+    private sealed class PromptSearchRow
+    {
+        public Guid Id { get; init; }
+        public string Title { get; init; } = string.Empty;
+        public string? Description { get; init; }
+        public string? Content { get; init; }
+        public string? Category { get; init; }
+        public string? Language { get; init; }
+        public string? ModelHint { get; init; }
+        public string? TargetModelId { get; init; }
+        public decimal? Temperature { get; init; }
+        public int? MaxTokens { get; init; }
+        public decimal? TopP { get; init; }
+        public int Version { get; init; }
+        public bool IsActive { get; init; }
+        public DateTime CreatedAt { get; init; }
+        public DateTime UpdatedAt { get; init; }
+        public string? TagsJson { get; init; }
         public int TotalRows { get; init; }
     }
 }

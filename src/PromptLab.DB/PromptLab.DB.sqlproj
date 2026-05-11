@@ -34,6 +34,11 @@
     <Build Include="Tables\Tags.sql" />
     <Build Include="Tables\PromptTags.sql" />
     <Build Include="Tables\AnalysisRuns.sql" />
+    <Build Include="Tables\PromptVersions.sql" />
+    <Build Include="Tables\TestSuites.sql" />
+    <Build Include="Tables\TestCases.sql" />
+    <Build Include="Tables\TestRuns.sql" />
+    <Build Include="Tables\TestResults.sql" />
     <Build Include="Functions\fn_NormalizeSlug.sql" />
     <Build Include="Functions\fn_HasPromptTag.sql" />
     <Build Include="StoredProcedures\Prompt_Create.sql" />
@@ -47,6 +52,23 @@
     <Build Include="StoredProcedures\Tag_Search.sql" />
     <Build Include="StoredProcedures\Analyze_CreateRun.sql" />
     <Build Include="StoredProcedures\Analyze_GetRunById.sql" />
+    <Build Include="StoredProcedures\PromptVersion_GetByPromptId.sql" />
+    <Build Include="StoredProcedures\TestSuite_Create.sql" />
+    <Build Include="StoredProcedures\TestSuite_Update.sql" />
+    <Build Include="StoredProcedures\TestSuite_Delete.sql" />
+    <Build Include="StoredProcedures\TestSuite_GetById.sql" />
+    <Build Include="StoredProcedures\TestSuite_GetByPromptId.sql" />
+    <Build Include="StoredProcedures\TestCase_Create.sql" />
+    <Build Include="StoredProcedures\TestCase_Update.sql" />
+    <Build Include="StoredProcedures\TestCase_Delete.sql" />
+    <Build Include="StoredProcedures\TestCase_GetBySuiteId.sql" />
+    <Build Include="StoredProcedures\TestRun_Create.sql" />
+    <Build Include="StoredProcedures\TestRun_Update.sql" />
+    <Build Include="StoredProcedures\TestRun_GetById.sql" />
+    <Build Include="StoredProcedures\TestRun_GetBySuiteId.sql" />
+    <Build Include="StoredProcedures\TestRun_GetAll.sql" />
+    <Build Include="StoredProcedures\TestResult_Create.sql" />
+    <Build Include="StoredProcedures\TestResult_GetByRunId.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="PostDeploy\PostDeploy.sql" />

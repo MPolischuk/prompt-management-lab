@@ -3,8 +3,8 @@ namespace PromptLab.Business.Configuration;
 public class AiOptions
 {
     public const string SectionName = "Ai";
-    public string DefaultProvider { get; init; } = "simulated";
-    public IReadOnlyCollection<string> EnabledProviders { get; init; } = ["simulated"];
+    public string DefaultProvider { get; init; } = "openai";
+    public IReadOnlyCollection<string> EnabledProviders { get; init; } = ["openai"];
     public IReadOnlyCollection<string> CatalogProviders { get; init; } = [];
     public IReadOnlyCollection<AiModelOption> Models { get; init; } = [];
 

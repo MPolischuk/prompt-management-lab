@@ -3,6 +3,7 @@
     <Project Path="PromptLab.Service/PromptLab.Business/PromptLab.Business.csproj" />
     <Project Path="PromptLab.Service/PromptLab.Data/PromptLab.Data.csproj" />
     <Project Path="PromptLab.Service/PromptLab.Entities/PromptLab.Entities.csproj" />
+    <Project Path="PromptLab.Service/PromptLab.Integrations/PromptLab.Integrations.csproj" />
     <Project Path="PromptLab.Service/PromptLab.Service/PromptLab.Service.csproj" />
   </Folder>
   <Folder Name="/tests/" />

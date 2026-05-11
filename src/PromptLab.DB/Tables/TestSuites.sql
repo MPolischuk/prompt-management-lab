@@ -1,0 +1,22 @@
+CREATE TABLE [dbo].[TestSuites]
+(
+    [Id] UNIQUEIDENTIFIER NOT NULL CONSTRAINT [DF_TestSuites_Id] DEFAULT NEWID(),
+    [PromptId] UNIQUEIDENTIFIER NOT NULL,
+    [Name] NVARCHAR(200) NOT NULL,
+    [Description] NVARCHAR(1000) NULL,
+    [IsActive] BIT NOT NULL CONSTRAINT [DF_TestSuites_IsActive] DEFAULT (1),
+    [CreatedAt] DATETIME2(3) NOT NULL CONSTRAINT [DF_TestSuites_CreatedAt] DEFAULT SYSUTCDATETIME(),
+    [UpdatedAt] DATETIME2(3) NOT NULL CONSTRAINT [DF_TestSuites_UpdatedAt] DEFAULT SYSUTCDATETIME(),
+    CONSTRAINT [PK_TestSuites] PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [FK_TestSuites_Prompts] FOREIGN KEY ([PromptId]) REFERENCES [dbo].[Prompts] ([Id]) ON DELETE CASCADE
+);
+
+GO
+
+CREATE NONCLUSTERED INDEX [IX_TestSuites_PromptId]
+    ON [dbo].[TestSuites]([PromptId] ASC);
+
+GO
+
+CREATE NONCLUSTERED INDEX [IX_TestSuites_IsActive]
+    ON [dbo].[TestSuites]([IsActive] ASC);

@@ -13,6 +13,7 @@ namespace PromptLab.Business.Services;
 /// </summary>
 public class PromptService(
     IPromptRepository repository,
+    IPromptVersionRepository versionRepository,
     IMemoryCache cache,
     IOptions<CacheOptions> cacheOptions) : IPromptService
 {
@@ -106,5 +107,11 @@ public class PromptService(
     {
         var version = cache.Get<int>(SearchVersionKey);
         return $"prompt:search:v{version}:{request.Query}:{request.Category}:{request.Language}:{request.IsActive}:{request.TagId}:{request.CreatedFrom}:{request.CreatedTo}:{request.PageNumber}:{request.PageSize}";
+    }
+
+    /// <inheritdoc />
+    public Task<IReadOnlyList<PromptVersion>> GetVersionsAsync(Guid promptId, CancellationToken cancellationToken)
+    {
+        return versionRepository.GetByPromptIdAsync(promptId, cancellationToken);
     }
 }

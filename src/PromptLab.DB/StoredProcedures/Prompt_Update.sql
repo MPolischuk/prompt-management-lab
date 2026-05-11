@@ -21,6 +21,27 @@ BEGIN
         RETURN;
     END
 
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Prompts] WHERE [Id] = @Id)
+    BEGIN
+        SELECT CAST(0 AS BIT) AS [Success], @Id AS [EntityId], N'Prompt not found.' AS [Message];
+        RETURN;
+    END
+
+    DECLARE @OldContent NVARCHAR(MAX);
+    DECLARE @OldVersion INT;
+
+    SELECT
+        @OldContent = [Content],
+        @OldVersion = [Version]
+    FROM [dbo].[Prompts]
+    WHERE [Id] = @Id;
+
+    DECLARE @NewVersion INT =
+        CASE
+            WHEN @Content <> @OldContent THEN @OldVersion + 1
+            ELSE @OldVersion
+        END;
+
     UPDATE [dbo].[Prompts]
        SET [Title] = @Title,
            [Description] = @Description,
@@ -33,13 +54,18 @@ BEGIN
            [MaxTokens] = @MaxTokens,
            [TopP] = @TopP,
            [IsActive] = @IsActive,
+           [Version] = @NewVersion,
            [UpdatedAt] = SYSUTCDATETIME()
      WHERE [Id] = @Id;
 
-    DECLARE @RowsAffected INT = @@ROWCOUNT;
+    IF @Content <> @OldContent
+    BEGIN
+        INSERT INTO [dbo].[PromptVersions] ([Id], [PromptId], [Content], [Version], [CreatedAt])
+        VALUES (NEWID(), @Id, @Content, @NewVersion, SYSUTCDATETIME());
+    END
 
     SELECT
-        CASE WHEN @RowsAffected > 0 THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS [Success],
+        CAST(1 AS BIT) AS [Success],
         @Id AS [EntityId],
-        CASE WHEN @RowsAffected > 0 THEN CAST(NULL AS NVARCHAR(500)) ELSE N'Prompt not found.' END AS [Message];
+        CAST(NULL AS NVARCHAR(500)) AS [Message];
 END;

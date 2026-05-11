@@ -16,9 +16,20 @@ BEGIN
         p.[Temperature],
         p.[MaxTokens],
         p.[TopP],
+        p.[Version],
         p.[IsActive],
         p.[CreatedAt],
-        p.[UpdatedAt]
+        p.[UpdatedAt],
+        (
+            SELECT
+                t.[Id],
+                t.[Name],
+                t.[Slug]
+            FROM [dbo].[PromptTags] pt
+            INNER JOIN [dbo].[Tags] t ON t.[Id] = pt.[TagId]
+            WHERE pt.[PromptId] = p.[Id]
+            FOR JSON PATH
+        ) AS [TagsJson]
     FROM [dbo].[Prompts] p
     WHERE p.[Id] = @Id;
 END;

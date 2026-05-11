@@ -17,6 +17,7 @@
     <ProjectReference Include="..\PromptLab.Entities\PromptLab.Entities.csproj" />
     <ProjectReference Include="..\PromptLab.Data\PromptLab.Data.csproj" />
     <ProjectReference Include="..\PromptLab.Business\PromptLab.Business.csproj" />
+    <ProjectReference Include="..\PromptLab.Integrations\PromptLab.Integrations.csproj" />
   </ItemGroup>
 
 </Project>

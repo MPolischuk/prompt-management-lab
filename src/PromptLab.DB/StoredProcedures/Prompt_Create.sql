@@ -25,13 +25,16 @@ BEGIN
     INSERT INTO [dbo].[Prompts]
     (
         [Id], [Title], [Description], [Content], [Category], [Language],
-        [ModelHint], [TargetModelId], [Temperature], [MaxTokens], [TopP], [IsActive], [CreatedAt], [UpdatedAt]
+        [ModelHint], [TargetModelId], [Temperature], [MaxTokens], [TopP], [Version], [IsActive], [CreatedAt], [UpdatedAt]
     )
     VALUES
     (
         @Id, @Title, @Description, @Content, @Category, @Language,
-        @ModelHint, @TargetModelId, @Temperature, @MaxTokens, @TopP, 1, @UtcNow, @UtcNow
+        @ModelHint, @TargetModelId, @Temperature, @MaxTokens, @TopP, 1, 1, @UtcNow, @UtcNow
     );
+
+    INSERT INTO [dbo].[PromptVersions] ([Id], [PromptId], [Content], [Version], [CreatedAt])
+    VALUES (NEWID(), @Id, @Content, 1, @UtcNow);
 
     SELECT
         CAST(1 AS BIT) AS [Success],

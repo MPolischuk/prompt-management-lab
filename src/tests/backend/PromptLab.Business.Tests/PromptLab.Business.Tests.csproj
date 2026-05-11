@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\PromptLab.Service\PromptLab.Business\PromptLab.Business.csproj" />
     <ProjectReference Include="..\..\..\PromptLab.Service\PromptLab.Entities\PromptLab.Entities.csproj" />
+    <ProjectReference Include="..\..\..\PromptLab.Service\PromptLab.Integrations\PromptLab.Integrations.csproj" />
   </ItemGroup>
 
 </Project>

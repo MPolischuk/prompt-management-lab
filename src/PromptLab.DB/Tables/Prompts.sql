@@ -11,6 +11,7 @@ CREATE TABLE [dbo].[Prompts]
     [Temperature] DECIMAL(4, 2) NULL,
     [MaxTokens] INT NULL,
     [TopP] DECIMAL(4, 2) NULL,
+    [Version] INT NOT NULL CONSTRAINT [DF_Prompts_Version] DEFAULT (1),
     [IsActive] BIT NOT NULL CONSTRAINT [DF_Prompts_IsActive] DEFAULT (1),
     [CreatedAt] DATETIME2(3) NOT NULL CONSTRAINT [DF_Prompts_CreatedAt] DEFAULT SYSUTCDATETIME(),
     [UpdatedAt] DATETIME2(3) NOT NULL CONSTRAINT [DF_Prompts_UpdatedAt] DEFAULT SYSUTCDATETIME(),

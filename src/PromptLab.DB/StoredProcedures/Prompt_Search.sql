@@ -24,6 +24,7 @@ BEGIN
             p.[Id],
             p.[Title],
             p.[Description],
+            p.[Content],
             p.[Category],
             p.[Language],
             p.[ModelHint],
@@ -31,9 +32,20 @@ BEGIN
             p.[Temperature],
             p.[MaxTokens],
             p.[TopP],
+            p.[Version],
             p.[IsActive],
             p.[CreatedAt],
-            p.[UpdatedAt]
+            p.[UpdatedAt],
+            (
+                SELECT
+                    t.[Id],
+                    t.[Name],
+                    t.[Slug]
+                FROM [dbo].[PromptTags] pt
+                INNER JOIN [dbo].[Tags] t ON t.[Id] = pt.[TagId]
+                WHERE pt.[PromptId] = p.[Id]
+                FOR JSON PATH
+            ) AS [TagsJson]
         FROM [dbo].[Prompts] p
         WHERE
             (@Query IS NULL OR p.[Title] LIKE N'%' + @Query + N'%' OR p.[Description] LIKE N'%' + @Query + N'%' OR p.[Content] LIKE N'%' + @Query + N'%')

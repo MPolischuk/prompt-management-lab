@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using PromptLab.Business.Ai.Anthropic;
+using PromptLab.Business.Ai.Contracts;
 using PromptLab.Business.Ai.Google;
 using PromptLab.Business.Ai.OpenAi;
 using PromptLab.Business.Configuration;
