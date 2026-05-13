@@ -10,6 +10,7 @@ Laboratorio de gestión de prompts: API **ASP.NET Core** (.NET 10), base **SQL S
 | `src/PromptLab.DB` | Proyecto de base de datos SQL Server: tablas, funciones y stored procedures. |
 | `src/PromptLab.ClientApp` | Cliente: React 18 + Vite + TypeScript + Tailwind + React Router + TanStack Query contra la API. Ver [README del ClientApp](src/PromptLab.ClientApp/README.md). |
 | `src/tests/backend/PromptLab.Business.Tests` | Tests unitarios del backend. |
+| `doc/business` | Sitio de **documentación** (Docusaurus 3): arquitectura, API, frontend, tests y operaciones. |
 
 ## Novedades recientes (resumen)
 
@@ -117,3 +118,28 @@ npm run dev
 ```
 
 Más detalle: [src/PromptLab.ClientApp/README.md](src/PromptLab.ClientApp/README.md).
+
+## Ver la documentación del proyecto (Docusaurus)
+
+La documentación técnica y funcional vive en **`doc/business`** (Markdown bajo `doc/business/docs/`).
+
+Requisito: **Node.js 20+**.
+
+```powershell
+cd doc/business
+npm install
+npm start
+```
+
+Se abre el sitio en el navegador (por defecto **http://localhost:3000**). La entrada principal es **Introducción** (`/docs/intro`).
+
+Para generar el sitio estático de producción:
+
+```powershell
+cd doc/business
+npm run build
+```
+
+La salida queda en `doc/business/build/`. Podés previsualizarla con `npm run serve` desde esa misma carpeta.
+
+Más detalle y notas de configuración: [doc/business/README.md](doc/business/README.md).

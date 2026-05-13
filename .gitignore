@@ -427,8 +427,4 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
-/.cursor/skills/dotnet-solution-analyzer
-/.cursor/skills/dotnet-solution-analyzer/SKILL.md
-/doc
-/doc/solution-analysis.md
-/.cursor/skills/nextjs-react-analyzer/SKILL.md
+/.cursor/
