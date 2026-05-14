@@ -94,4 +94,131 @@ public class PromptsControllerTests : IClassFixture<WebApplicationFactory<Progra
             new[] { Guid.NewGuid() });
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task GetById_WhenFound_Returns200WithPayload()
+    {
+        var id = Guid.NewGuid();
+        var prompts = new Mock<IPromptService>();
+        prompts.Setup(p => p.GetByIdAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(
+            new Prompt
+            {
+                Id = id,
+                Title = "T",
+                Content = "C",
+                Version = 1,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Tags = [],
+                TagSummaries = []
+            });
+        prompts.Setup(p => p.GetByIdAsync(It.Is<Guid>(g => g != id), It.IsAny<CancellationToken>())).ReturnsAsync((Prompt?)null);
+        prompts.Setup(p => p.SearchAsync(It.IsAny<PromptSearchRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PagedResponse<Prompt> { Items = [], PageNumber = 1, PageSize = 20, TotalRows = 0 });
+        prompts.Setup(p => p.CreateAsync(It.IsAny<UpsertPromptRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
+        prompts.Setup(p => p.UpdateAsync(It.IsAny<Guid>(), It.IsAny<UpsertPromptRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true });
+        prompts.Setup(p => p.DeleteAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true });
+        prompts.Setup(p => p.SetTagsAsync(It.IsAny<Guid>(), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true });
+
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
+        {
+            b.ConfigureServices(services =>
+            {
+                services.RemoveAll<IPromptService>();
+                services.AddSingleton(prompts.Object);
+            });
+        });
+
+        using var client = factory.CreateClient();
+        var response = await client.GetAsync($"/api/prompts/{id}");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Create_WhenSuccessButNoEntityId_Returns400()
+    {
+        var prompts = new Mock<IPromptService>();
+        WireDefaults(prompts);
+        prompts.Setup(p => p.CreateAsync(It.IsAny<UpsertPromptRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = null });
+
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
+        {
+            b.ConfigureServices(services =>
+            {
+                services.RemoveAll<IPromptService>();
+                services.AddSingleton(prompts.Object);
+            });
+        });
+
+        using var client = factory.CreateClient();
+        var response = await client.PostAsJsonAsync("/api/prompts", new UpsertPromptRequest { Title = "t", Content = "c" });
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Update_WhenNotFound_Returns404()
+    {
+        var prompts = new Mock<IPromptService>();
+        WireDefaults(prompts);
+        prompts.Setup(p => p.UpdateAsync(It.IsAny<Guid>(), It.IsAny<UpsertPromptRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.NotFound });
+
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
+        {
+            b.ConfigureServices(services =>
+            {
+                services.RemoveAll<IPromptService>();
+                services.AddSingleton(prompts.Object);
+            });
+        });
+
+        using var client = factory.CreateClient();
+        var response = await client.PutAsJsonAsync(
+            $"/api/prompts/{Guid.NewGuid()}",
+            new UpsertPromptRequest { Title = "t", Content = "c" });
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Delete_WhenConflict_Returns409()
+    {
+        var prompts = new Mock<IPromptService>();
+        WireDefaults(prompts);
+        prompts.Setup(p => p.DeleteAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.Conflict });
+
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
+        {
+            b.ConfigureServices(services =>
+            {
+                services.RemoveAll<IPromptService>();
+                services.AddSingleton(prompts.Object);
+            });
+        });
+
+        using var client = factory.CreateClient();
+        var response = await client.DeleteAsync($"/api/prompts/{Guid.NewGuid()}");
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    private static void WireDefaults(Mock<IPromptService> prompts)
+    {
+        prompts.Setup(p => p.SearchAsync(It.IsAny<PromptSearchRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PagedResponse<Prompt> { Items = [], PageNumber = 1, PageSize = 20, TotalRows = 0 });
+        prompts.Setup(p => p.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Prompt?)null);
+        prompts.Setup(p => p.CreateAsync(It.IsAny<UpsertPromptRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
+        prompts.Setup(p => p.UpdateAsync(It.IsAny<Guid>(), It.IsAny<UpsertPromptRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true });
+        prompts.Setup(p => p.DeleteAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true });
+        prompts.Setup(p => p.SetTagsAsync(It.IsAny<Guid>(), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true });
+    }
 }

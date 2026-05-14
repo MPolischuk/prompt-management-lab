@@ -67,6 +67,23 @@ public class TagRepositoryTests
     }
 
     [Fact]
+    public async Task SearchAsync_WithNullQuery_PassesNullParameter()
+    {
+        var conn = new TestDbConnection
+        {
+            ResultBuilder = cmd =>
+            {
+                cmd.CommandText.Should().Be(StoredProcedures.TagSearch);
+                cmd.GetParameterValues()["Query"].Should().BeNull();
+                return new DataTable();
+            }
+        };
+        var repo = new TagRepository(new TestDbConnectionFactory(conn));
+
+        _ = await repo.SearchAsync(null, CancellationToken.None);
+    }
+
+    [Fact]
     public async Task CreateAsync_PassesName()
     {
         var conn = new TestDbConnection

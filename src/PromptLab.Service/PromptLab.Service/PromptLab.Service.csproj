@@ -20,4 +20,8 @@
     <ProjectReference Include="..\PromptLab.Integrations\PromptLab.Integrations.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="PromptLab.Service.Tests" />
+  </ItemGroup>
+
 </Project>

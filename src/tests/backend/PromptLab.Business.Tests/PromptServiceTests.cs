@@ -204,4 +204,81 @@ public class PromptServiceTests
         result.Success.Should().BeTrue();
         cache.Get<int>("prompt:search:version").Should().Be(8);
     }
+
+    [Fact]
+    public async Task UpdateAsync_WhenRepositoryFails_DoesNotCallSetTagsOrInvalidateCache()
+    {
+        var repository = new Mock<IPromptRepository>();
+        repository.Setup(r => r.UpdateAsync(It.IsAny<Guid>(), It.IsAny<UpsertPromptRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.NotFound });
+
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        cache.Set("prompt:search:version", 10);
+        var service = new PromptService(repository.Object, CreateVersionRepositoryMock().Object, cache, Options.Create(new CacheOptions()));
+        var request = new UpsertPromptRequest { Title = "t", Content = "c", TagIds = [Guid.NewGuid()] };
+
+        var result = await service.UpdateAsync(Guid.NewGuid(), request, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        cache.Get<int>("prompt:search:version").Should().Be(10);
+        repository.Verify(r => r.SetTagsAsync(It.IsAny<Guid>(), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SetTagsAsync_WhenRepositoryFails_DoesNotInvalidateCache()
+    {
+        var repository = new Mock<IPromptRepository>();
+        repository.Setup(r => r.SetTagsAsync(It.IsAny<Guid>(), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.Validation });
+
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        cache.Set("prompt:search:version", 11);
+        var service = new PromptService(repository.Object, CreateVersionRepositoryMock().Object, cache, Options.Create(new CacheOptions()));
+
+        var result = await service.SetTagsAsync(Guid.NewGuid(), [Guid.NewGuid()], CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        cache.Get<int>("prompt:search:version").Should().Be(11);
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithNoTags_DoesNotCallSetTagsAsync()
+    {
+        var createdId = Guid.NewGuid();
+        var repository = new Mock<IPromptRepository>();
+        repository.Setup(r => r.CreateAsync(It.IsAny<UpsertPromptRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = createdId });
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        cache.Set("prompt:search:version", 1);
+        var service = new PromptService(repository.Object, CreateVersionRepositoryMock().Object, cache, Options.Create(new CacheOptions()));
+
+        var result = await service.CreateAsync(
+            new UpsertPromptRequest { Title = "t", Content = "c", TagIds = [] },
+            CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        repository.Verify(r => r.SetTagsAsync(It.IsAny<Guid>(), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithDifferentQueryKeys_BuildsDistinctCacheEntries()
+    {
+        var repository = new Mock<IPromptRepository>();
+        repository.Setup(r => r.SearchAsync(It.IsAny<PromptSearchRequest>(), It.IsAny<CancellationToken>()))
+            .Returns<PromptSearchRequest, CancellationToken>((req, _) =>
+                Task.FromResult(new PagedResponse<Prompt> { Items = [], PageNumber = req.PageNumber, PageSize = req.PageSize, TotalRows = 0 }));
+
+        var service = new PromptService(
+            repository.Object,
+            CreateVersionRepositoryMock().Object,
+            new MemoryCache(new MemoryCacheOptions()),
+            Options.Create(new CacheOptions { PromptSearchTtlSeconds = 60 }));
+
+        var first = new PromptSearchRequest { Query = "a", PageNumber = 1, PageSize = 10 };
+        var second = new PromptSearchRequest { Query = "b", PageNumber = 1, PageSize = 10 };
+        _ = await service.SearchAsync(first, CancellationToken.None);
+        _ = await service.SearchAsync(second, CancellationToken.None);
+
+        repository.Verify(r => r.SearchAsync(It.IsAny<PromptSearchRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
 }

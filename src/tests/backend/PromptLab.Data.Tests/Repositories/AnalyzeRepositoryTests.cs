@@ -44,6 +44,59 @@ public class AnalyzeRepositoryTests
     }
 
     [Fact]
+    public async Task CreateRunAsync_PassesAllRequiredParameters()
+    {
+        var runId = Guid.NewGuid();
+        var promptId = Guid.NewGuid();
+        var conn = new TestDbConnection
+        {
+            ResultBuilder = cmd =>
+            {
+                cmd.CommandText.Should().Be(StoredProcedures.AnalyzeCreateRun);
+                var p = cmd.GetParameterValues();
+                p["PromptId"].Should().Be(promptId);
+                p["Provider"].Should().Be("anthropic");
+                p["ModelId"].Should().Be("claude-3");
+                p["Input"].Should().Be("in");
+                p["Output"].Should().Be("out");
+                p["Temperature"].Should().Be(0.5m);
+                p["MaxTokens"].Should().Be(512);
+                p["TopP"].Should().Be(0.9m);
+                p["PromptSnapshot"].Should().Be("snap");
+                p["PromptSnapshotHash"].Should().Be("hash");
+                p["Status"].Should().Be("Completed");
+                p["ErrorMessage"].Should().Be("err");
+                p["LatencyMs"].Should().Be(99);
+                return DataTableTestHelpers.OperationResultTable(true, runId);
+            }
+        };
+        var repo = new AnalyzeRepository(new TestDbConnectionFactory(conn));
+        var run = new AnalyzeRun
+        {
+            Id = runId,
+            PromptId = promptId,
+            Provider = "anthropic",
+            ModelId = "claude-3",
+            Input = "in",
+            Output = "out",
+            Temperature = 0.5m,
+            MaxTokens = 512,
+            TopP = 0.9m,
+            PromptSnapshot = "snap",
+            PromptSnapshotHash = "hash",
+            Status = "Completed",
+            ErrorMessage = "err",
+            LatencyMs = 99,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = await repo.CreateRunAsync(run, CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        result.EntityId.Should().Be(runId);
+    }
+
+    [Fact]
     public async Task GetRunByIdAsync_ReturnsRun()
     {
         var id = Guid.NewGuid();
@@ -100,5 +153,25 @@ public class AnalyzeRepositoryTests
 
         run.Should().NotBeNull();
         run!.Output.Should().Be("out");
+    }
+
+    [Fact]
+    public async Task GetRunByIdAsync_WhenNoRow_ReturnsNull()
+    {
+        var id = Guid.NewGuid();
+        var conn = new TestDbConnection
+        {
+            ResultBuilder = cmd =>
+            {
+                cmd.CommandText.Should().Be(StoredProcedures.AnalyzeGetRunById);
+                cmd.GetParameterValues()["Id"].Should().Be(id);
+                return new DataTable();
+            }
+        };
+        var repo = new AnalyzeRepository(new TestDbConnectionFactory(conn));
+
+        var run = await repo.GetRunByIdAsync(id, CancellationToken.None);
+
+        run.Should().BeNull();
     }
 }

@@ -72,6 +72,26 @@ public class TestSuiteRepositoryTests
     }
 
     [Fact]
+    public async Task GetByIdAsync_WhenNoRow_ReturnsNull()
+    {
+        var id = Guid.NewGuid();
+        var conn = new TestDbConnection
+        {
+            ResultBuilder = cmd =>
+            {
+                cmd.CommandText.Should().Be(StoredProcedures.TestSuiteGetById);
+                cmd.GetParameterValues()["Id"].Should().Be(id);
+                return new DataTable();
+            }
+        };
+        var repo = new TestSuiteRepository(new TestDbConnectionFactory(conn));
+
+        var suite = await repo.GetByIdAsync(id, CancellationToken.None);
+
+        suite.Should().BeNull();
+    }
+
+    [Fact]
     public async Task CreateUpdateDelete_PropagateParameters()
     {
         var promptId = Guid.NewGuid();

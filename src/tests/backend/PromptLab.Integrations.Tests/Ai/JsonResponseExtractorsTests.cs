@@ -83,4 +83,46 @@ public class JsonResponseExtractorsTests
         using var doc = JsonDocument.Parse("{}");
         JsonResponseExtractors.TryGetErrorMessage(doc.RootElement).Should().BeNull();
     }
+
+    [Fact]
+    public void TryGetOpenAiText_WhenOutputItemHasContentAsString_ReturnsText()
+    {
+        using var doc = JsonDocument.Parse("""{"output":[{"content":"inline"}]}""");
+        JsonResponseExtractors.TryGetOpenAiText(doc.RootElement).Should().Be("inline");
+    }
+
+    [Fact]
+    public void TryGetOpenAiText_WhenMultipleOutputItems_ReturnsFirstNonEmpty()
+    {
+        const string json = """{"output":[{"content":[{"text":""}]},{"content":[{"text":"second"}]}]}""";
+        using var doc = JsonDocument.Parse(json);
+        JsonResponseExtractors.TryGetOpenAiText(doc.RootElement).Should().Be("second");
+    }
+
+    [Fact]
+    public void TryGetAnthropicText_WhenMultipleContentBlocks_ReturnsFirstText()
+    {
+        using var doc = JsonDocument.Parse("""{"content":[{"text":"a"},{"text":"b"}]}""");
+        JsonResponseExtractors.TryGetAnthropicText(doc.RootElement).Should().Be("a");
+    }
+
+    [Fact]
+    public void TryGetGeminiText_WhenMultipleCandidates_ReturnsFirst()
+    {
+        const string json = """
+            {"candidates":[
+              {"content":{"parts":[{"text":"first"}]}},
+              {"content":{"parts":[{"text":"ignored"}]}}
+            ]}
+            """;
+        using var doc = JsonDocument.Parse(json);
+        JsonResponseExtractors.TryGetGeminiText(doc.RootElement).Should().Be("first");
+    }
+
+    [Fact]
+    public void TryGetErrorMessage_WhenErrorObjectLacksMessage_ReturnsNull()
+    {
+        using var doc = JsonDocument.Parse("""{"error":{"code":123}}""");
+        JsonResponseExtractors.TryGetErrorMessage(doc.RootElement).Should().BeNull();
+    }
 }

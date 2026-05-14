@@ -4,10 +4,10 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Moq;
+using PromptLab.Business.Services.Contracts;
 using PromptLab.Entities.Analyze;
 using PromptLab.Entities.Common;
-using PromptLab.Entities.Contracts;
-using PromptLab.Entities.Prompts;
 
 namespace PromptLab.Service.Tests;
 
@@ -17,14 +17,18 @@ public class AnalyzeControllerTests : IClassFixture<WebApplicationFactory<Progra
 
     public AnalyzeControllerTests(WebApplicationFactory<Program> factory)
     {
-        _factory = factory.WithWebHostBuilder(builder =>
+        var analyze = new Mock<IAnalyzeService>();
+        analyze.Setup(s => s.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((AnalyzeRun?)null);
+        analyze.Setup(s => s.AnalyzeAsync(It.IsAny<AnalyzeRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
+
+        _factory = factory.WithWebHostBuilder(b =>
         {
-            builder.ConfigureServices(services =>
+            b.ConfigureServices(services =>
             {
-                services.RemoveAll<IPromptRepository>();
-                services.RemoveAll<IAnalyzeRepository>();
-                services.AddSingleton<IPromptRepository, InMemoryPromptRepository>();
-                services.AddSingleton<IAnalyzeRepository, InMemoryAnalyzeRepository>();
+                services.RemoveAll<IAnalyzeService>();
+                services.AddSingleton(analyze.Object);
             });
         });
     }
@@ -33,9 +37,7 @@ public class AnalyzeControllerTests : IClassFixture<WebApplicationFactory<Progra
     public async Task GetByIdAsync_WhenRunDoesNotExist_Returns404()
     {
         using var client = _factory.CreateClient();
-
         var response = await client.GetAsync($"/api/analyze/{Guid.NewGuid()}");
-
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -43,9 +45,8 @@ public class AnalyzeControllerTests : IClassFixture<WebApplicationFactory<Progra
     public async Task GetByIdAsync_WhenRunExists_Returns200WithPayload()
     {
         var runId = Guid.NewGuid();
-        var repository = _factory.Services.GetRequiredService<IAnalyzeRepository>() as InMemoryAnalyzeRepository;
-        repository.Should().NotBeNull();
-        repository!.Seed(
+        var analyze = new Mock<IAnalyzeService>();
+        analyze.Setup(s => s.GetByIdAsync(runId, It.IsAny<CancellationToken>())).ReturnsAsync(
             new AnalyzeRun
             {
                 Id = runId,
@@ -56,9 +57,21 @@ public class AnalyzeControllerTests : IClassFixture<WebApplicationFactory<Progra
                 Output = "ok",
                 CreatedAt = DateTime.UtcNow
             });
+        analyze.Setup(s => s.GetByIdAsync(It.Is<Guid>(g => g != runId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((AnalyzeRun?)null);
+        analyze.Setup(s => s.AnalyzeAsync(It.IsAny<AnalyzeRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
 
-        using var client = _factory.CreateClient();
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
+        {
+            b.ConfigureServices(services =>
+            {
+                services.RemoveAll<IAnalyzeService>();
+                services.AddSingleton(analyze.Object);
+            });
+        });
 
+        using var client = factory.CreateClient();
         var response = await client.GetAsync($"/api/analyze/{runId}");
         var payload = await response.Content.ReadFromJsonAsync<AnalyzeRun>();
 
@@ -68,43 +81,54 @@ public class AnalyzeControllerTests : IClassFixture<WebApplicationFactory<Progra
         payload.Output.Should().Be("ok");
     }
 
-    private sealed class InMemoryPromptRepository : IPromptRepository
+    [Fact]
+    public async Task Post_WhenAnalyzeSucceeds_Returns200Ok()
     {
-        public Task<OperationResult> CreateAsync(UpsertPromptRequest request, CancellationToken cancellationToken) =>
-            Task.FromResult(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
+        var analyze = new Mock<IAnalyzeService>();
+        analyze.Setup(s => s.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((AnalyzeRun?)null);
+        analyze.Setup(s => s.AnalyzeAsync(It.IsAny<AnalyzeRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid(), Message = "ok" });
 
-        public Task<OperationResult> UpdateAsync(Guid id, UpsertPromptRequest request, CancellationToken cancellationToken) =>
-            Task.FromResult(new OperationResult { Success = true, EntityId = id });
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
+        {
+            b.ConfigureServices(services =>
+            {
+                services.RemoveAll<IAnalyzeService>();
+                services.AddSingleton(analyze.Object);
+            });
+        });
 
-        public Task<OperationResult> DeleteAsync(Guid id, CancellationToken cancellationToken) =>
-            Task.FromResult(new OperationResult { Success = true, EntityId = id });
+        using var client = factory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/analyze",
+            new AnalyzeRequest { PromptId = Guid.NewGuid(), Input = "x" });
 
-        public Task<Prompt?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
-            Task.FromResult<Prompt?>(null);
-
-        public Task<PagedResponse<Prompt>> SearchAsync(PromptSearchRequest request, CancellationToken cancellationToken) =>
-            Task.FromResult(new PagedResponse<Prompt> { Items = [], PageNumber = 1, PageSize = 10, TotalRows = 0 });
-
-        public Task<OperationResult> SetTagsAsync(Guid promptId, IReadOnlyCollection<Guid> tagIds, CancellationToken cancellationToken) =>
-            Task.FromResult(new OperationResult { Success = true, EntityId = promptId });
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        analyze.Verify(s => s.AnalyzeAsync(It.IsAny<AnalyzeRequest>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    private sealed class InMemoryAnalyzeRepository : IAnalyzeRepository
+    [Fact]
+    public async Task Post_WhenServiceReturnsFailure_ReturnsExpectedHttpStatus()
     {
-        private readonly Dictionary<Guid, AnalyzeRun> _runs = new();
+        var analyze = new Mock<IAnalyzeService>();
+        analyze.Setup(s => s.AnalyzeAsync(It.IsAny<AnalyzeRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.NotFound, Message = "missing" });
 
-        public void Seed(AnalyzeRun run) => _runs[run.Id] = run;
-
-        public Task<OperationResult> CreateRunAsync(AnalyzeRun run, CancellationToken cancellationToken)
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
         {
-            _runs[run.Id] = run;
-            return Task.FromResult(new OperationResult { Success = true, EntityId = run.Id });
-        }
+            b.ConfigureServices(services =>
+            {
+                services.RemoveAll<IAnalyzeService>();
+                services.AddSingleton(analyze.Object);
+            });
+        });
 
-        public Task<AnalyzeRun?> GetRunByIdAsync(Guid id, CancellationToken cancellationToken)
-        {
-            _runs.TryGetValue(id, out var run);
-            return Task.FromResult(run);
-        }
+        using var client = factory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/analyze",
+            new AnalyzeRequest { PromptId = Guid.NewGuid(), Input = "x" });
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

@@ -111,6 +111,46 @@ public class AiHttpExecutionPipelineTests
         result.ErrorMessage.Should().Contain("network boom");
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WhenResponseBodyIsNotValidJson_ReturnsFailedWithExceptionMessage()
+    {
+        using var client = new HttpClient(new OkHandler("{not-json"));
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "http://local/");
+        var logger = NullLogger.Instance;
+
+        var result = await AiHttpExecutionPipeline.ExecuteAsync(
+            client,
+            request,
+            JsonResponseExtractors.TryGetOpenAiText,
+            logger,
+            "Test",
+            CancellationToken.None);
+
+        result.Status.Should().Be("Failed");
+        result.ErrorMessage.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenSuccess_AndApiReturnsErrorMessage_ReturnsFailedWithApiError()
+    {
+        using var client = new HttpClient(new OkHandler("""{"error":"rate limited"}"""));
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "http://local/");
+        var logger = NullLogger.Instance;
+
+        var result = await AiHttpExecutionPipeline.ExecuteAsync(
+            client,
+            request,
+            JsonResponseExtractors.TryGetOpenAiText,
+            logger,
+            "Test",
+            CancellationToken.None);
+
+        result.Status.Should().Be("Failed");
+        result.ErrorMessage.Should().Be("rate limited");
+    }
+
     private sealed class OkHandler : HttpMessageHandler
     {
         private readonly string _body;

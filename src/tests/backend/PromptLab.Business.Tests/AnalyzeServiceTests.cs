@@ -401,4 +401,26 @@ public class AnalyzeServiceTests
         providers.Single(p => p.Name == "openai").Enabled.Should().BeTrue();
         providers.Single(p => p.Name == "simulated").Enabled.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task GetByIdAsync_WhenRunMissing_ReturnsNull()
+    {
+        var id = Guid.NewGuid();
+        var analyzeRepository = new Mock<IAnalyzeRepository>();
+        analyzeRepository.Setup(r => r.GetRunByIdAsync(id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((AnalyzeRun?)null);
+        var aiOptions = BuildAiOptions();
+        var service = new AnalyzeService(
+            Mock.Of<IPromptRepository>(),
+            analyzeRepository.Object,
+            new AiProviderFactory([], Options.Create(aiOptions)),
+            Options.Create(aiOptions),
+            Options.Create(new CacheOptions()),
+            new MemoryCache(new MemoryCacheOptions()));
+
+        var result = await service.GetByIdAsync(id, CancellationToken.None);
+
+        result.Should().BeNull();
+        analyzeRepository.Verify(r => r.GetRunByIdAsync(id, It.IsAny<CancellationToken>()), Times.Once);
+    }
 }

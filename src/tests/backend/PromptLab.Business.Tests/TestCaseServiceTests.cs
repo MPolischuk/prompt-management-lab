@@ -77,4 +77,48 @@ public class TestCaseServiceTests
 
         result.Success.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task CreateAsync_WhenRepositoryFails_ReturnsFailureResult()
+    {
+        var req = new CreateTestCaseRequest { SuiteId = Guid.NewGuid(), Name = "n", InputVariables = "{}", ExpectedOutput = "e" };
+        _repository.Setup(r => r.CreateAsync(req, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.Conflict, Message = "dup" });
+        var sut = CreateSut();
+
+        var result = await sut.CreateAsync(req, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be(OperationErrorCode.Conflict);
+        result.Message.Should().Be("dup");
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenRepositoryFails_ReturnsFailureResult()
+    {
+        var id = Guid.NewGuid();
+        var req = new UpdateTestCaseRequest { Name = "n", InputVariables = "{}", ExpectedOutput = null };
+        _repository.Setup(r => r.UpdateAsync(id, req, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.NotFound });
+        var sut = CreateSut();
+
+        var result = await sut.UpdateAsync(id, req, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be(OperationErrorCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WhenRepositoryFails_ReturnsFailureResult()
+    {
+        var id = Guid.NewGuid();
+        _repository.Setup(r => r.DeleteAsync(id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.Unavailable });
+        var sut = CreateSut();
+
+        var result = await sut.DeleteAsync(id, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be(OperationErrorCode.Unavailable);
+    }
 }

@@ -106,4 +106,47 @@ public class TestSuiteServiceTests
 
         result.Success.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task CreateAsync_WhenRepositoryFails_ReturnsFailureResult()
+    {
+        var req = new CreateTestSuiteRequest { PromptId = Guid.NewGuid(), Name = "n", Description = "d" };
+        _suites.Setup(s => s.CreateAsync(req, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.Validation, Message = "bad" });
+        var sut = CreateSut();
+
+        var result = await sut.CreateAsync(req, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be(OperationErrorCode.Validation);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenRepositoryFails_ReturnsFailureResult()
+    {
+        var id = Guid.NewGuid();
+        var req = new UpdateTestSuiteRequest { Name = "n", Description = null };
+        _suites.Setup(s => s.UpdateAsync(id, req, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.NotFound });
+        var sut = CreateSut();
+
+        var result = await sut.UpdateAsync(id, req, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be(OperationErrorCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WhenRepositoryFails_ReturnsFailureResult()
+    {
+        var id = Guid.NewGuid();
+        _suites.Setup(s => s.DeleteAsync(id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.Conflict });
+        var sut = CreateSut();
+
+        var result = await sut.DeleteAsync(id, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be(OperationErrorCode.Conflict);
+    }
 }

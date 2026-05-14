@@ -138,4 +138,64 @@ public class TestRunServiceTests
 
         result.Success.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task CreateAsync_WhenRepositoryFails_ReturnsFailureResult()
+    {
+        var req = new CreateTestRunRequest
+        {
+            SuiteId = Guid.NewGuid(),
+            PromptId = Guid.NewGuid(),
+            PromptVersion = 1,
+            Model = "m",
+            Temperature = 0.2m,
+            Status = "Pending"
+        };
+        _repository.Setup(r => r.CreateAsync(req, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.Unavailable });
+        var sut = CreateSut();
+
+        var result = await sut.CreateAsync(req, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be(OperationErrorCode.Unavailable);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenRepositoryFails_ReturnsFailureResult()
+    {
+        var id = Guid.NewGuid();
+        var req = new UpdateTestRunRequest { Status = "Done", StartedAt = DateTime.UtcNow, CompletedAt = DateTime.UtcNow };
+        _repository.Setup(r => r.UpdateAsync(id, req, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.NotFound });
+        var sut = CreateSut();
+
+        var result = await sut.UpdateAsync(id, req, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be(OperationErrorCode.NotFound);
+    }
+
+    [Fact]
+    public async Task CreateResultAsync_WhenRepositoryFails_ReturnsFailureResult()
+    {
+        var req = new CreateTestResultRequest
+        {
+            RunId = Guid.NewGuid(),
+            CaseId = Guid.NewGuid(),
+            ActualOutput = "a",
+            Passed = false,
+            Score = 0m,
+            LatencyMs = 0,
+            Error = "e"
+        };
+        _repository.Setup(r => r.CreateResultAsync(req, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.Validation });
+        var sut = CreateSut();
+
+        var result = await sut.CreateResultAsync(req, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be(OperationErrorCode.Validation);
+    }
 }

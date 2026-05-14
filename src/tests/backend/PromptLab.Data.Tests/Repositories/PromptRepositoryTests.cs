@@ -256,4 +256,138 @@ public class PromptRepositoryTests
 
         result.Success.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task SearchAsync_WhenNoRows_ReturnsEmptyPagedResponse()
+    {
+        var conn = new TestDbConnection
+        {
+            ResultBuilder = cmd =>
+            {
+                cmd.CommandText.Should().Be(StoredProcedures.PromptSearch);
+                return new DataTable();
+            }
+        };
+        var repo = new PromptRepository(new TestDbConnectionFactory(conn));
+        var request = new PromptSearchRequest { PageNumber = 1, PageSize = 20 };
+
+        var page = await repo.SearchAsync(request, CancellationToken.None);
+
+        page.Items.Should().BeEmpty();
+        page.TotalRows.Should().Be(0);
+        page.PageNumber.Should().Be(1);
+        page.PageSize.Should().Be(20);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithValidTagsJson_ParsesTagSummaries()
+    {
+        var tagId = Guid.NewGuid();
+        var tagsJson = System.Text.Json.JsonSerializer.Serialize(new[] { new { id = tagId, name = "alpha", slug = "alpha-slug" } });
+        var conn = new TestDbConnection
+        {
+            ResultBuilder = _ => BuildSearchRowTable(tagsJson: tagsJson, content: "body")
+        };
+        var repo = new PromptRepository(new TestDbConnectionFactory(conn));
+
+        var page = await repo.SearchAsync(new PromptSearchRequest { PageNumber = 1, PageSize = 10 }, CancellationToken.None);
+
+        var item = page.Items.Single();
+        item.TagSummaries.Should().HaveCount(1);
+        item.TagSummaries.Single().Slug.Should().Be("alpha-slug");
+        item.Tags.Should().Contain("alpha");
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithInvalidTagsJson_ReturnsEmptyTags()
+    {
+        var conn = new TestDbConnection
+        {
+            ResultBuilder = _ => BuildSearchRowTable(tagsJson: "{not-json", content: "c")
+        };
+        var repo = new PromptRepository(new TestDbConnectionFactory(conn));
+
+        var page = await repo.SearchAsync(new PromptSearchRequest { PageNumber = 1, PageSize = 10 }, CancellationToken.None);
+
+        var item = page.Items.Single();
+        item.TagSummaries.Should().BeEmpty();
+        item.Tags.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SearchAsync_WithNullContent_MapsContentToEmpty()
+    {
+        var conn = new TestDbConnection
+        {
+            ResultBuilder = _ => BuildSearchRowTable(tagsJson: null, content: null)
+        };
+        var repo = new PromptRepository(new TestDbConnectionFactory(conn));
+
+        var page = await repo.SearchAsync(new PromptSearchRequest { PageNumber = 1, PageSize = 10 }, CancellationToken.None);
+
+        page.Items.Single().Content.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SetTagsAsync_WithEmptyTagIds_PassesEmptyString()
+    {
+        var promptId = Guid.NewGuid();
+        var conn = new TestDbConnection
+        {
+            ResultBuilder = cmd =>
+            {
+                cmd.CommandText.Should().Be(StoredProcedures.PromptSetTags);
+                cmd.GetParameterValues()["TagIds"].Should().Be(string.Empty);
+                return DataTableTestHelpers.OperationResultTable(true);
+            }
+        };
+        var repo = new PromptRepository(new TestDbConnectionFactory(conn));
+
+        var result = await repo.SetTagsAsync(promptId, [], CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+    }
+
+    private static DataTable BuildSearchRowTable(string? tagsJson, string? content)
+    {
+        var t = new DataTable();
+        t.Columns.Add("Id", typeof(Guid));
+        t.Columns.Add("Title", typeof(string));
+        t.Columns.Add("Description", typeof(string));
+        t.Columns.Add("Content", typeof(string));
+        t.Columns.Add("Category", typeof(string));
+        t.Columns.Add("Language", typeof(string));
+        t.Columns.Add("ModelHint", typeof(string));
+        t.Columns.Add("TargetModelId", typeof(string));
+        t.Columns.Add("Temperature", typeof(decimal));
+        t.Columns.Add("MaxTokens", typeof(int));
+        t.Columns.Add("TopP", typeof(decimal));
+        t.Columns.Add("Version", typeof(int));
+        t.Columns.Add("IsActive", typeof(bool));
+        t.Columns.Add("CreatedAt", typeof(DateTime));
+        t.Columns.Add("UpdatedAt", typeof(DateTime));
+        t.Columns.Add("TagsJson", typeof(string));
+        t.Columns.Add("TotalRows", typeof(int));
+        var now = DateTime.UtcNow;
+        var row = t.NewRow();
+        row["Id"] = Guid.NewGuid();
+        row["Title"] = "T";
+        row["Description"] = DBNull.Value;
+        row["Content"] = content is null ? DBNull.Value : content;
+        row["Category"] = DBNull.Value;
+        row["Language"] = DBNull.Value;
+        row["ModelHint"] = DBNull.Value;
+        row["TargetModelId"] = DBNull.Value;
+        row["Temperature"] = DBNull.Value;
+        row["MaxTokens"] = DBNull.Value;
+        row["TopP"] = DBNull.Value;
+        row["Version"] = 1;
+        row["IsActive"] = true;
+        row["CreatedAt"] = now;
+        row["UpdatedAt"] = now;
+        row["TagsJson"] = tagsJson is null ? DBNull.Value : tagsJson;
+        row["TotalRows"] = 1;
+        t.Rows.Add(row);
+        return t;
+    }
 }

@@ -113,4 +113,150 @@ public class TestRunsControllerTests : IClassFixture<WebApplicationFactory<Progr
             });
         response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
+
+    [Fact]
+    public async Task GetById_WhenFound_Returns200WithPayload()
+    {
+        var runId = Guid.NewGuid();
+        var detail = new TestRunDetail
+        {
+            Run = new TestRun
+            {
+                Id = runId,
+                SuiteId = Guid.NewGuid(),
+                PromptId = Guid.NewGuid(),
+                PromptVersion = 1,
+                Model = "m",
+                Temperature = 0.1m,
+                Status = "Done",
+                CreatedAt = DateTime.UtcNow
+            },
+            Results = []
+        };
+        var runs = new Mock<ITestRunService>();
+        runs.Setup(r => r.GetByIdWithResultsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Returns((Guid id, CancellationToken _) => Task.FromResult<TestRunDetail?>(id == runId ? detail : null));
+        runs.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<TestRun>());
+        runs.Setup(r => r.GetBySuiteIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(new List<TestRun>());
+        runs.Setup(r => r.CreateAsync(It.IsAny<CreateTestRunRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
+        runs.Setup(r => r.UpdateAsync(It.IsAny<Guid>(), It.IsAny<UpdateTestRunRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true });
+        runs.Setup(r => r.CreateResultAsync(It.IsAny<CreateTestResultRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
+
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
+        {
+            b.ConfigureServices(services =>
+            {
+                services.RemoveAll<ITestRunService>();
+                services.AddSingleton(runs.Object);
+            });
+        });
+
+        using var client = factory.CreateClient();
+        var response = await client.GetAsync($"/api/testruns/{runId}");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Create_WhenSuccessButNoEntityId_Returns400()
+    {
+        var runs = new Mock<ITestRunService>();
+        WireRunDefaults(runs);
+        runs.Setup(r => r.CreateAsync(It.IsAny<CreateTestRunRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = null });
+
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
+        {
+            b.ConfigureServices(services =>
+            {
+                services.RemoveAll<ITestRunService>();
+                services.AddSingleton(runs.Object);
+            });
+        });
+
+        using var client = factory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            "/api/testruns",
+            new CreateTestRunRequest
+            {
+                SuiteId = Guid.NewGuid(),
+                PromptId = Guid.NewGuid(),
+                PromptVersion = 1,
+                Model = "m",
+                Temperature = 0.1m,
+                Status = "Pending"
+            });
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task CreateResult_WhenSuccessButNoEntityId_Returns400()
+    {
+        var runs = new Mock<ITestRunService>();
+        WireRunDefaults(runs);
+        runs.Setup(r => r.CreateResultAsync(It.IsAny<CreateTestResultRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = null });
+
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
+        {
+            b.ConfigureServices(services =>
+            {
+                services.RemoveAll<ITestRunService>();
+                services.AddSingleton(runs.Object);
+            });
+        });
+
+        using var client = factory.CreateClient();
+        var response = await client.PostAsJsonAsync(
+            $"/api/testruns/{Guid.NewGuid()}/results",
+            new TestResultCreateBody
+            {
+                CaseId = Guid.NewGuid(),
+                ActualOutput = "out",
+                Passed = true,
+                Score = 1m,
+                LatencyMs = 5,
+                Error = null
+            });
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Update_WhenNotFound_Returns404()
+    {
+        var runs = new Mock<ITestRunService>();
+        WireRunDefaults(runs);
+        runs.Setup(r => r.UpdateAsync(It.IsAny<Guid>(), It.IsAny<UpdateTestRunRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.NotFound });
+
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
+        {
+            b.ConfigureServices(services =>
+            {
+                services.RemoveAll<ITestRunService>();
+                services.AddSingleton(runs.Object);
+            });
+        });
+
+        using var client = factory.CreateClient();
+        var response = await client.PutAsJsonAsync(
+            $"/api/testruns/{Guid.NewGuid()}",
+            new UpdateTestRunRequest { Status = "Done", StartedAt = DateTime.UtcNow, CompletedAt = DateTime.UtcNow });
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    private static void WireRunDefaults(Mock<ITestRunService> runs)
+    {
+        runs.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<TestRun>());
+        runs.Setup(r => r.GetBySuiteIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(new List<TestRun>());
+        runs.Setup(r => r.GetByIdWithResultsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((TestRunDetail?)null);
+        runs.Setup(r => r.CreateAsync(It.IsAny<CreateTestRunRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
+        runs.Setup(r => r.UpdateAsync(It.IsAny<Guid>(), It.IsAny<UpdateTestRunRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true });
+        runs.Setup(r => r.CreateResultAsync(It.IsAny<CreateTestResultRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true, EntityId = Guid.NewGuid() });
+    }
 }
