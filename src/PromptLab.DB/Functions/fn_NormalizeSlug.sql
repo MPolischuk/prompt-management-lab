@@ -5,10 +5,20 @@ CREATE FUNCTION [dbo].[fn_NormalizeSlug]
 RETURNS NVARCHAR(200)
 AS
 BEGIN
-    DECLARE @value NVARCHAR(200) = LOWER(LTRIM(RTRIM(ISNULL(@input, N''))));
+    DECLARE @inputNorm NVARCHAR(200);
+    DECLARE @value NVARCHAR(200);
+
+    SET @inputNorm = @input COLLATE DATABASE_DEFAULT;
+
+    SET @value = LOWER(
+                    LTRIM(
+                        RTRIM(
+                            ISNULL(@inputNorm, N'')
+                        )
+                    )
+                 );
 
     SET @value = REPLACE(@value, N' ', N'-');
-    SET @value = REPLACE(@value, N'--', N'-');
     SET @value = REPLACE(@value, N'/', N'-');
     SET @value = REPLACE(@value, N'\', N'-');
     SET @value = REPLACE(@value, N'.', N'-');
@@ -25,5 +35,5 @@ BEGIN
     IF RIGHT(@value, 1) = N'-'
         SET @value = LEFT(@value, LEN(@value) - 1);
 
-    RETURN @value;
+    RETURN @value COLLATE DATABASE_DEFAULT;
 END;
