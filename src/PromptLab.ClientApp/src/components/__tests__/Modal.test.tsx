@@ -36,4 +36,15 @@ describe('Modal', () => {
     await user.click(screen.getByRole('button', { name: 'Cerrar' }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('llama onClose al pulsar Escape', () => {
+    const onClose = vi.fn();
+    render(
+      <Modal isOpen onClose={onClose} title="T">
+        x
+      </Modal>
+    );
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });

@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { PromptFormPage } from '../PromptFormPage';
-import { resetPromptsState } from '../../test/msw/handlers';
+import { resetAllStores } from '../../test/msw/handlers';
 import { server } from '../../test/msw/server';
 
 function fieldTitle() {
@@ -48,7 +48,7 @@ function renderFormAt(initialPath: string) {
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {
   server.resetHandlers();
-  resetPromptsState();
+  resetAllStores();
   vi.restoreAllMocks();
 });
 afterAll(() => server.close());
@@ -71,7 +71,7 @@ describe('PromptFormPage', () => {
       expect(screen.getByRole('heading', { name: 'Editar prompt' })).toBeInTheDocument();
     });
     expect(await screen.findByDisplayValue('Prompt uno')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Contenido del prompt')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Hola {{nombre}} — plantilla')).toBeInTheDocument();
   });
 
   it('validación: título obligatorio', async () => {

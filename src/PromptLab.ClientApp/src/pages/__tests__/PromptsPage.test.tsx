@@ -5,14 +5,14 @@ import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router-dom';
 import * as api from '../../lib/api';
 import { PromptsPage } from '../PromptsPage';
-import { API_BASE, resetPromptsState, setPromptsStateForTest } from '../../test/msw/handlers';
+import { resetAllStores, setPromptsStateForTest, API_BASE } from '../../test/msw/handlers';
 import { renderWithProviders } from '../../test/helpers';
 import { server } from '../../test/msw/server';
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {
   server.resetHandlers();
-  resetPromptsState();
+  resetAllStores();
   vi.restoreAllMocks();
 });
 afterAll(() => server.close());

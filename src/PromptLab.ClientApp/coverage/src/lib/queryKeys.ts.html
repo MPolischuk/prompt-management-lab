@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.33% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>3/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/4</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">25% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/8</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.33% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>3/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -75,29 +75,29 @@
 <a name='L10'></a><a href='#L10'>10</a>
 <a name='L11'></a><a href='#L11'>11</a>
 <a name='L12'></a><a href='#L12'>12</a>
-<a name='L13'></a><a href='#L13'>13</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
+<a name='L13'></a><a href='#L13'>13</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">113x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">88x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">export const queryKeys = {
   prompts: ['prompts'] as const,
   prompt: (id: string) =&gt; ['prompt', id] as const,
-  promptVersions: <span class="fstat-no" title="function not covered" >(i</span>d: string) =&gt; <span class="cstat-no" title="statement not covered" >['promptVersions', id] as const,</span>
+  promptVersions: (id: string) =&gt; ['promptVersions', id] as const,
   tags: (q?: string) =&gt; ['tags', q ?? ''] as const,
   aiModels: ['aiModels'] as const,
-  testSuites: <span class="fstat-no" title="function not covered" >(p</span>romptId: string) =&gt; <span class="cstat-no" title="statement not covered" >['testSuites', promptId] as const,</span>
-  testSuiteDetail: <span class="fstat-no" title="function not covered" >(i</span>d: string) =&gt; <span class="cstat-no" title="statement not covered" >['testSuiteDetail', id] as const,</span>
-  testCases: <span class="fstat-no" title="function not covered" >(s</span>uiteId: string) =&gt; <span class="cstat-no" title="statement not covered" >['testCases', suiteId] as const,</span>
-  testRuns: <span class="fstat-no" title="function not covered" >(s</span>uiteId?: string) =&gt; <span class="cstat-no" title="statement not covered" >['testRuns', suiteId ?? 'all'] as const,</span>
-  testRunDetail: <span class="fstat-no" title="function not covered" >(i</span>d: string) =&gt; <span class="cstat-no" title="statement not covered" >['testRunDetail', id] as const,</span>
+  testSuites: (promptId: string) =&gt; ['testSuites', promptId] as const,
+  testSuiteDetail: (id: string) =&gt; ['testSuiteDetail', id] as const,
+  testCases: (suiteId: string) =&gt; ['testCases', suiteId] as const,
+  testRuns: (suiteId?: string) =&gt; ['testRuns', suiteId ?? 'all'] as const,
+  testRunDetail: (id: string) =&gt; ['testRunDetail', id] as const,
 };
 &nbsp;</pre></td></tr></table></pre>
 
@@ -106,7 +106,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-14T19:54:15.717Z
+                at 2026-05-14T21:13:05.777Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
