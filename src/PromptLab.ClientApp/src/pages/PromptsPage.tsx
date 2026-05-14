@@ -139,36 +139,41 @@ export function PromptsPage() {
 
 function PromptCard({ prompt, onDelete }: { prompt: Prompt; onDelete: (id: string, e: React.MouseEvent) => void }) {
   return (
-    <Link
-      to={`/prompts/${prompt.id}`}
+    <div
+      data-testid={`prompt-card-${prompt.id}`}
       className="block bg-gray-900 rounded-xl border border-gray-800 p-5 hover:border-gray-700 hover:bg-gray-850 cursor-pointer group transition-all"
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-white font-medium text-sm truncate">{prompt.title}</h3>
-          <p className="text-gray-500 text-xs mt-0.5 truncate">{prompt.description || 'Sin descripción'}</p>
+      <Link
+        to={`/prompts/${prompt.id}`}
+        className="block text-inherit no-underline rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+      >
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-white font-medium text-sm truncate">{prompt.title}</h3>
+            <p className="text-gray-500 text-xs mt-0.5 truncate">{prompt.description || 'Sin descripción'}</p>
+          </div>
+          <Badge variant="neutral">v{prompt.version}</Badge>
         </div>
-        <Badge variant="neutral">v{prompt.version}</Badge>
-      </div>
-      <div className="bg-gray-800 rounded-lg p-3 mb-3 h-16 overflow-hidden relative">
-        <p className="text-gray-400 text-xs font-mono leading-relaxed line-clamp-3">{prompt.content}</p>
-      </div>
-      {(prompt.tagSummaries?.length ?? 0) > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {prompt.tagSummaries!.slice(0, 3).map((tag) => (
-            <span key={tag.id} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-800 text-gray-400 text-xs rounded">
-              <Tag className="w-2.5 h-2.5" />
-              {tag.name}
-            </span>
-          ))}
+        <div className="bg-gray-800 rounded-lg p-3 mb-3 h-16 overflow-hidden relative">
+          <p className="text-gray-400 text-xs font-mono leading-relaxed line-clamp-3">{prompt.content}</p>
         </div>
-      )}
+        {(prompt.tagSummaries?.length ?? 0) > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {prompt.tagSummaries!.slice(0, 3).map((tag) => (
+              <span key={tag.id} className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-800 text-gray-400 text-xs rounded">
+                <Tag className="w-2.5 h-2.5" />
+                {tag.name}
+              </span>
+            ))}
+          </div>
+        )}
+      </Link>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1 text-gray-600 text-xs">
           <Clock className="w-3 h-3" />
           {new Date(prompt.updatedAt).toLocaleDateString()}
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.preventDefault()}>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <Link
             to={`/prompts/${prompt.id}/test-suites`}
             className="p-1.5 text-gray-500 hover:text-blue-400 hover:bg-gray-800 rounded-md"
@@ -184,6 +189,6 @@ function PromptCard({ prompt, onDelete }: { prompt: Prompt; onDelete: (id: strin
           </button>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
