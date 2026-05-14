@@ -9,6 +9,8 @@
   <Folder Name="/tests/" />
   <Folder Name="/tests/backend/">
     <Project Path="tests/backend/PromptLab.Business.Tests/PromptLab.Business.Tests.csproj" />
+    <Project Path="tests/backend/PromptLab.Data.Tests/PromptLab.Data.Tests.csproj" />
+    <Project Path="tests/backend/PromptLab.Integrations.Tests/PromptLab.Integrations.Tests.csproj" />
     <Project Path="tests/backend/PromptLab.Service.Tests/PromptLab.Service.Tests.csproj" />
   </Folder>
 </Solution>

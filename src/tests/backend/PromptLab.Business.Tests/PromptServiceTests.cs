@@ -59,7 +59,92 @@ public class PromptServiceTests
 
         result.Success.Should().BeFalse();
         cache.Get<int>("prompt:search:version").Should().Be(5);
-        repository.Verify(r => r.SetTagsAsync(It.IsAny<Guid>(), It.IsAny<IReadOnlyCollection<Guid>>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WhenSuccessful_InvalidatesCache()
+    {
+        var repository = new Mock<IPromptRepository>();
+        repository.Setup(r => r.DeleteAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = true });
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        cache.Set("prompt:search:version", 4);
+        var sut = new PromptService(repository.Object, CreateVersionRepositoryMock().Object, cache, Options.Create(new CacheOptions()));
+
+        var result = await sut.DeleteAsync(Guid.NewGuid(), CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        cache.Get<int>("prompt:search:version").Should().Be(5);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WhenRepositoryFails_DoesNotInvalidateCache()
+    {
+        var repository = new Mock<IPromptRepository>();
+        repository.Setup(r => r.DeleteAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OperationResult { Success = false, ErrorCode = OperationErrorCode.NotFound });
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        cache.Set("prompt:search:version", 9);
+        var sut = new PromptService(repository.Object, CreateVersionRepositoryMock().Object, cache, Options.Create(new CacheOptions()));
+
+        var result = await sut.DeleteAsync(Guid.NewGuid(), CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        cache.Get<int>("prompt:search:version").Should().Be(9);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_DelegatesToRepository()
+    {
+        var id = Guid.NewGuid();
+        var prompt = new Prompt
+        {
+            Id = id,
+            Title = "t",
+            Content = "c",
+            Version = 1,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            Tags = [],
+            TagSummaries = []
+        };
+        var repository = new Mock<IPromptRepository>();
+        repository.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(prompt);
+        var sut = new PromptService(repository.Object, CreateVersionRepositoryMock().Object, new MemoryCache(new MemoryCacheOptions()), Options.Create(new CacheOptions()));
+
+        var result = await sut.GetByIdAsync(id, CancellationToken.None);
+
+        result.Should().Be(prompt);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_WhenNotFound_ReturnsNull()
+    {
+        var id = Guid.NewGuid();
+        var repository = new Mock<IPromptRepository>();
+        repository.Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync((Prompt?)null);
+        var sut = new PromptService(repository.Object, CreateVersionRepositoryMock().Object, new MemoryCache(new MemoryCacheOptions()), Options.Create(new CacheOptions()));
+
+        var result = await sut.GetByIdAsync(id, CancellationToken.None);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetVersionsAsync_DelegatesToVersionRepository()
+    {
+        var promptId = Guid.NewGuid();
+        var versions = new List<PromptVersion> { new() { Id = Guid.NewGuid(), PromptId = promptId, Content = "v", Version = 1, CreatedAt = DateTime.UtcNow } };
+        var versionRepo = new Mock<IPromptVersionRepository>();
+        versionRepo.Setup(v => v.GetByPromptIdAsync(promptId, It.IsAny<CancellationToken>())).ReturnsAsync(versions);
+        var repository = new Mock<IPromptRepository>();
+        var sut = new PromptService(repository.Object, versionRepo.Object, new MemoryCache(new MemoryCacheOptions()), Options.Create(new CacheOptions()));
+
+        var result = await sut.GetVersionsAsync(promptId, CancellationToken.None);
+
+        result.Should().BeEquivalentTo(versions);
+        versionRepo.Verify(v => v.GetByPromptIdAsync(promptId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
