@@ -182,6 +182,7 @@ public class PromptRepositoryTests
                 var p = cmd.GetParameterValues();
                 p["PageNumber"].Should().Be(2);
                 p["PageSize"].Should().Be(5);
+                p["IsActive"].Should().Be(true);
                 var t = new DataTable();
                 t.Columns.Add("Id", typeof(Guid));
                 t.Columns.Add("Title", typeof(string));

@@ -57,6 +57,7 @@ public class TestRunRepository(IDbConnectionFactory connectionFactory) : ITestRu
                 request.PromptVersion,
                 request.Model,
                 request.Temperature,
+                request.MaxTokens,
                 request.Status
             },
             commandType: CommandType.StoredProcedure,

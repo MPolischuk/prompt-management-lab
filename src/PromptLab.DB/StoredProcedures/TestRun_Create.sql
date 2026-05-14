@@ -4,6 +4,7 @@ CREATE PROCEDURE [dbo].[TestRun_Create]
     @PromptVersion INT,
     @Model NVARCHAR(200),
     @Temperature DECIMAL(4, 2),
+    @MaxTokens INT = NULL,
     @Status NVARCHAR(20)
 AS
 BEGIN
@@ -26,11 +27,11 @@ BEGIN
 
     INSERT INTO [dbo].[TestRuns]
     (
-        [Id], [SuiteId], [PromptId], [PromptVersion], [Model], [Temperature], [Status], [StartedAt], [CompletedAt], [CreatedAt]
+        [Id], [SuiteId], [PromptId], [PromptVersion], [Model], [Temperature], [MaxTokens], [Status], [StartedAt], [CompletedAt], [CreatedAt]
     )
     VALUES
     (
-        @Id, @SuiteId, @PromptId, @PromptVersion, @Model, @Temperature, @Status, NULL, NULL, @UtcNow
+        @Id, @SuiteId, @PromptId, @PromptVersion, @Model, @Temperature, @MaxTokens, @Status, NULL, NULL, @UtcNow
     );
 
     SELECT CAST(1 AS BIT) AS [Success], @Id AS [EntityId], CAST(NULL AS NVARCHAR(500)) AS [Message];

@@ -8,6 +8,7 @@ public sealed class TestRun
     public int PromptVersion { get; init; }
     public required string Model { get; init; }
     public decimal Temperature { get; init; }
+    public int? MaxTokens { get; init; }
     public required string Status { get; init; }
     public DateTime? StartedAt { get; init; }
     public DateTime? CompletedAt { get; init; }

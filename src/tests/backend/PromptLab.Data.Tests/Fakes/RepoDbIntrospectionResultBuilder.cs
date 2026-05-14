@@ -200,6 +200,7 @@ internal static class RepoDbIntrospectionResultBuilder
         AddRow(t, "PromptVersion", "int", 4, false);
         AddRow(t, "Model", "nvarchar", 200, false);
         AddRow(t, "Temperature", "decimal", 9, false);
+        AddRow(t, "MaxTokens", "int", 4, true);
         AddRow(t, "Status", "nvarchar", 50, false);
         AddRow(t, "StartedAt", "datetime", 8, true);
         AddRow(t, "CompletedAt", "datetime", 8, true);

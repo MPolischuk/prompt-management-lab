@@ -11,6 +11,7 @@ BEGIN
         r.[PromptVersion],
         r.[Model],
         r.[Temperature],
+        r.[MaxTokens],
         r.[Status],
         r.[StartedAt],
         r.[CompletedAt],

@@ -67,6 +67,7 @@ export interface TestRun {
   promptVersion: number;
   model: string;
   temperature: number;
+  maxTokens: number | null;
   status: string;
   startedAt: string | null;
   completedAt: string | null;

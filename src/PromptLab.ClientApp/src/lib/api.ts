@@ -225,6 +225,7 @@ export async function createTestRun(body: {
   promptVersion: number;
   model: string;
   temperature: number;
+  maxTokens?: number | null;
   status: string;
 }): Promise<TestRun> {
   const result = (await apiPost('/api/TestRuns', body)) as OperationResult;

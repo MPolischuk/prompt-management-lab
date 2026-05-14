@@ -97,7 +97,8 @@ public class PromptRepository(IDbConnectionFactory connectionFactory) : IPromptR
                 request.Query,
                 request.Category,
                 request.Language,
-                request.IsActive,
+                // Listado por defecto: solo prompts activos (baja logica = IsActive = 0).
+                IsActive = request.IsActive ?? true,
                 request.TagId,
                 request.CreatedFrom,
                 request.CreatedTo,

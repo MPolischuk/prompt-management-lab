@@ -147,6 +147,39 @@ export function PromptDetailPage() {
           )}
         </div>
 
+        {(() => {
+          const modelDisplay = prompt.targetModelId ?? prompt.modelHint;
+          const hasConfig =
+            (modelDisplay != null && modelDisplay !== '') ||
+            prompt.temperature != null ||
+            prompt.maxTokens != null ||
+            prompt.topP != null;
+          if (!hasConfig) return null;
+          return (
+            <div>
+              <h3 className="text-sm font-medium text-gray-300 mb-2">Configuración</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div className="bg-gray-900 border border-gray-800 rounded-lg p-3">
+                  <div className="text-xs text-gray-500 mb-1">Modelo</div>
+                  <div className="text-gray-200 font-mono break-all">{modelDisplay || '—'}</div>
+                </div>
+                <div className="bg-gray-900 border border-gray-800 rounded-lg p-3">
+                  <div className="text-xs text-gray-500 mb-1">Temperatura</div>
+                  <div className="text-gray-200">{prompt.temperature != null ? String(prompt.temperature) : '—'}</div>
+                </div>
+                <div className="bg-gray-900 border border-gray-800 rounded-lg p-3">
+                  <div className="text-xs text-gray-500 mb-1">Max tokens</div>
+                  <div className="text-gray-200">{prompt.maxTokens != null ? String(prompt.maxTokens) : '—'}</div>
+                </div>
+                <div className="bg-gray-900 border border-gray-800 rounded-lg p-3">
+                  <div className="text-xs text-gray-500 mb-1">Top P</div>
+                  <div className="text-gray-200">{prompt.topP != null ? String(prompt.topP) : '—'}</div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="grid grid-cols-2 gap-4 text-sm text-gray-400">
           <div>
             <Clock className="w-3 h-3 inline mr-1" />

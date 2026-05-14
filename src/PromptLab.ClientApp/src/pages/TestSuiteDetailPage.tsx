@@ -137,6 +137,7 @@ export function TestSuiteDetailPage() {
         promptVersion: prompt.version,
         model: prompt.modelHint ?? prompt.targetModelId ?? 'mock',
         temperature: prompt.temperature ?? 0.7,
+        maxTokens: prompt.maxTokens ?? null,
         status: 'pending',
       });
 

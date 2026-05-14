@@ -6,6 +6,7 @@ CREATE TABLE [dbo].[TestRuns]
     [PromptVersion] INT NOT NULL,
     [Model] NVARCHAR(200) COLLATE DATABASE_DEFAULT NOT NULL,
     [Temperature] DECIMAL(4, 2) NOT NULL CONSTRAINT [DF_TestRuns_Temperature] DEFAULT (0.7),
+    [MaxTokens] INT NULL,
     [Status] NVARCHAR(20) COLLATE DATABASE_DEFAULT NOT NULL CONSTRAINT [DF_TestRuns_Status] DEFAULT (N'pending'),
     [StartedAt] DATETIME2(3) NULL,
     [CompletedAt] DATETIME2(3) NULL,

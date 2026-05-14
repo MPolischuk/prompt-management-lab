@@ -68,6 +68,7 @@ public class TestRunRepositoryTests
                 t.Columns.Add("PromptVersion", typeof(int));
                 t.Columns.Add("Model", typeof(string));
                 t.Columns.Add("Temperature", typeof(decimal));
+                t.Columns.Add("MaxTokens", typeof(int));
                 t.Columns.Add("Status", typeof(string));
                 t.Columns.Add("StartedAt", typeof(DateTime));
                 t.Columns.Add("CompletedAt", typeof(DateTime));
@@ -82,6 +83,7 @@ public class TestRunRepositoryTests
                 row["PromptVersion"] = 1;
                 row["Model"] = "m";
                 row["Temperature"] = 0.5m;
+                row["MaxTokens"] = 1024;
                 row["Status"] = "Pending";
                 row["StartedAt"] = DBNull.Value;
                 row["CompletedAt"] = DBNull.Value;
@@ -98,6 +100,7 @@ public class TestRunRepositoryTests
 
         run.Should().NotBeNull();
         run!.Model.Should().Be("m");
+        run.MaxTokens.Should().Be(1024);
     }
 
     [Fact]
@@ -246,6 +249,7 @@ public class TestRunRepositoryTests
                 p["PromptVersion"].Should().Be(2);
                 p["Model"].Should().Be("m");
                 p["Temperature"].Should().Be(0.3m);
+                p["MaxTokens"].Should().Be(2048);
                 p["Status"].Should().Be("Pending");
                 return DataTableTestHelpers.OperationResultTable(true, Guid.NewGuid());
             }
@@ -260,6 +264,7 @@ public class TestRunRepositoryTests
                 PromptVersion = 2,
                 Model = "m",
                 Temperature = 0.3m,
+                MaxTokens = 2048,
                 Status = "Pending"
             },
             CancellationToken.None);

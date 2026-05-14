@@ -41,6 +41,7 @@ BEGIN
             @PromptVersion = @PromptVersion,
             @Model = N'gpt-4o',
             @Temperature = 0.21,
+            @MaxTokens = NULL,
             @Status = N'completed';
     END;
 
@@ -60,6 +61,7 @@ BEGIN
             @PromptVersion = @PromptVersion,
             @Model = N'gpt-4o-mini',
             @Temperature = 0.52,
+            @MaxTokens = NULL,
             @Status = N'failed';
     END;
 
@@ -79,6 +81,7 @@ BEGIN
             @PromptVersion = @PromptVersion,
             @Model = N'claude-3-5-sonnet',
             @Temperature = 0.73,
+            @MaxTokens = NULL,
             @Status = N'pending';
     END;
 
@@ -98,6 +101,7 @@ BEGIN
             @PromptVersion = @PromptVersion,
             @Model = N'gemini-1.5-pro',
             @Temperature = 0.94,
+            @MaxTokens = NULL,
             @Status = N'running';
     END;
 

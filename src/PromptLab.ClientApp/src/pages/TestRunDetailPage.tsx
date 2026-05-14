@@ -61,7 +61,7 @@ export function TestRunDetailPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
           <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
             <div className="text-xs text-gray-500">Pass rate</div>
             <div className="text-xl font-semibold text-white">{passRate}%</div>
@@ -77,6 +77,20 @@ export function TestRunDetailPage() {
           <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
             <div className="text-xs text-gray-500">Casos</div>
             <div className="text-xl font-semibold text-white">{results.length}</div>
+          </div>
+          <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+            <div className="text-xs text-gray-500">Modelo</div>
+            <div className="text-sm font-medium text-white font-mono truncate" title={run.model}>
+              {run.model}
+            </div>
+          </div>
+          <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+            <div className="text-xs text-gray-500">Temperatura</div>
+            <div className="text-xl font-semibold text-white">{run.temperature}</div>
+          </div>
+          <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+            <div className="text-xs text-gray-500">Max tokens</div>
+            <div className="text-xl font-semibold text-white">{run.maxTokens != null ? run.maxTokens : '—'}</div>
           </div>
         </div>
 
