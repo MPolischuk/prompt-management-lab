@@ -1,16 +1,20 @@
 # Prompt Management Lab
 
-Laboratorio de gestión de prompts: API **ASP.NET Core** (.NET 10), base **SQL Server** (proyecto SSDT) y frontends en **React (Vite)** y **Next.js**.
+Laboratorio de gestión de prompts: API **ASP.NET Core** (.NET 10), base **SQL Server** (proyecto SSDT) y frontend en **React (Vite)**.
 
 ## Estructura del repositorio
 
 | Ruta | Descripción |
 |------|-------------|
+| `src/PromptLab.slnx` | Solución (formato `.slnx`) con la API y todos sus proyectos de tests. Es la solución que se usa para `dotnet build` / `dotnet test` / Visual Studio. |
+| `src/PromptLab.DB.slnx` | Solución aparte para el proyecto de base de datos (`PromptLab.DB.sqlproj`), porque los `.sqlproj` no conviven con el resto en `.slnx`. |
 | `src/PromptLab.Service` | API web (`PromptLab.Service`), lógica (`PromptLab.Business`), datos (`PromptLab.Data`), modelos (`PromptLab.Entities`), integraciones IA (`PromptLab.Integrations`). |
 | `src/PromptLab.DB` | Proyecto de base de datos SQL Server: tablas, funciones y stored procedures. |
 | `src/PromptLab.ClientApp` | Cliente: React 18 + Vite + TypeScript + Tailwind + React Router + TanStack Query contra la API. Ver [README del ClientApp](src/PromptLab.ClientApp/README.md). |
-| `src/tests/backend/PromptLab.Business.Tests` | Tests unitarios del backend. |
+| `src/tests/backend/` | Tests unitarios del backend: `PromptLab.Business.Tests`, `PromptLab.Data.Tests`, `PromptLab.Integrations.Tests`, `PromptLab.Service.Tests`. |
 | `doc/business` | Sitio de **documentación** (Docusaurus 3): arquitectura, API, frontend, tests y operaciones. |
+
+> Nota: ya no hay un `.sln` clásico en la raíz del repo. Trabajamos con los `.slnx` dentro de `src/` (requiere **.NET SDK 10**, que soporta este formato nativamente).
 
 ## Novedades recientes (resumen)
 
@@ -67,15 +71,24 @@ Con `Mock: true` no hace falta `ApiKey` y las respuestas son simuladas.
 
 ## Ejecutar el backend
 
-Desde la raíz del repo:
+Desde la raíz del repo, usando la solución `.slnx` de la API:
 
 ```powershell
-dotnet build prompt-management-lab.sln
-dotnet test prompt-management-lab.sln
+dotnet build src/PromptLab.slnx
+dotnet test src/PromptLab.slnx
 dotnet run --project src/PromptLab.Service/PromptLab.Service/PromptLab.Service.csproj
 ```
 
-Swagger: según perfil local, suele ser `https://localhost:7106/swagger` (revisar `Properties/launchSettings.json`).
+- `dotnet build` y `dotnet test` se ejecutan sobre `src/PromptLab.slnx`, que incluye la API y los 4 proyectos de tests (`PromptLab.Business.Tests`, `PromptLab.Data.Tests`, `PromptLab.Integrations.Tests`, `PromptLab.Service.Tests`).
+- `dotnet run` apunta directamente al host web (`PromptLab.Service.csproj`).
+- Si preferís correr un único proyecto de tests, podés hacer `dotnet test src/tests/backend/<Proyecto>.Tests/<Proyecto>.Tests.csproj`.
+
+Según `src/PromptLab.Service/PromptLab.Service/Properties/launchSettings.json`, el perfil por defecto expone:
+
+- `https://localhost:7106`
+- `http://localhost:5106`
+
+Swagger queda en `https://localhost:7106/swagger`.
 
 ## Publicar / actualizar la base de datos (`PromptLab.DB`)
 
@@ -87,8 +100,8 @@ Ahí está el **nombre de la base** (`TargetDatabaseName`), la **cadena de conex
 
 ### Opción recomendada: Visual Studio (SSDT)
 
-1. Abrí la solución y el proyecto **PromptLab.DB** (SQL Server Database Project).
-2. Clic derecho en el proyecto → **Publicar…** (o **Publish**).
+1. Abrí la solución de base de datos **`src/PromptLab.DB.slnx`** (los `.sqlproj` se mantienen en una solución aparte porque no conviven con el resto de proyectos .NET en `.slnx`).
+2. Clic derecho en el proyecto **PromptLab.DB** → **Publicar…** (o **Publish**).
 3. Elegí o importá el perfil que apunte al archivo anterior (`Deploy\PromptLab.DB.local.publish.xml`), o copiá sus valores a un perfil nuevo.
 4. Publicá: se aplica el modelo (tablas, SPs, `PostDeploy`, etc.) contra la base indicada.
 
